@@ -4,6 +4,7 @@
   let selectedKode = '';
   let selectedDate = '';
   let searchQuery = '';
+  let checkedDate = '';
   let showResults = false;
   let isAvailable = false;
   let availabilityList = [];
@@ -32,6 +33,8 @@
       alert('Mohon pilih dress dan tanggal');
       return;
     }
+
+    checkedDate = selectedDate;
 
     const booking = bookings.find(b => b.kode === selectedKode && b.tanggal === selectedDate);
     isAvailable = !booking;
@@ -124,12 +127,12 @@
       {#if isAvailable}
         <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
           <h3 class="text-lg font-semibold text-green-800 mb-2">Tersedia</h3>
-          <p class="text-green-700">Produk tersedia untuk tanggal {formatDate(selectedDate)}</p>
+          <p class="text-green-700">Produk tersedia untuk tanggal {formatDate(checkedDate)}</p>
         </div>
       {:else}
         <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
           <h3 class="text-lg font-semibold text-red-800 mb-2">Tidak Tersedia</h3>
-          <p class="text-red-700">Produk tidak tersedia untuk tanggal {formatDate(selectedDate)}</p>
+          <p class="text-red-700">Produk tidak tersedia untuk tanggal {formatDate(checkedDate)}</p>
         </div>
       {/if}
 
