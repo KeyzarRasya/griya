@@ -77,12 +77,13 @@
       <table class="w-full border-collapse">
         <thead>
           <tr class="bg-gray-50">
-            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300">NAMA</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300" colspan="2">NAMA</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">WARNA & KODE BUSANA</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300" colspan="3">UKURAN</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">KET</th>
           </tr>
           <tr class="bg-gray-50">
+            <th class="px-4 py-2 border border-gray-300"></th>
             <th class="px-4 py-2 border border-gray-300"></th>
             <th class="px-4 py-2 border border-gray-300"></th>
             <th class="px-4 py-2 text-center text-xs font-medium text-gray-700 border border-gray-300">Busana</th>
@@ -94,14 +95,17 @@
         <tbody>
           <!-- Orang Tua Pengantin -->
           <tr class="bg-gray-100">
-            <td class="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300" colspan="6">Orang Tua Pengantin :</td>
+            <td class="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300" colspan="7">Orang Tua Pengantin :</td>
           </tr>
           
           <!-- CPW Bapak -->
           <tr>
+            <td class="px-4 py-3 text-sm text-gray-700 border border-gray-300" rowspan="2">
+              CPW
+            </td>
             <td class="px-4 py-3 text-sm text-gray-700 border border-gray-300">
               <div class="flex items-center gap-2">
-                <span class="whitespace-nowrap">CPW : Bp.</span>
+                <span class="whitespace-nowrap">Bp.</span>
                 <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.cpwBapak.nama} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" placeholder="Nama..." />
               </div>
             </td>
@@ -130,6 +134,8 @@
               <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.cpwBapak.keterangan} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
             </td>
           </tr>
+          
+          
 
           <!-- Ibu -->
           <tr>
@@ -167,9 +173,12 @@
 
           <!-- CPP Bapak -->
           <tr>
+            <td class="px-4 py-3 text-sm text-gray-700 border border-gray-300" rowspan="2">
+              CPP
+            </td>
             <td class="px-4 py-3 text-sm text-gray-700 border border-gray-300">
               <div class="flex items-center gap-2">
-                <span class="whitespace-nowrap">CPP : Bp.</span>
+                <span class="whitespace-nowrap">Bp.</span>
                 <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.cppBapak.nama} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" placeholder="Nama..." />
               </div>
             </td>
