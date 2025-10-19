@@ -16,5 +16,6 @@ jobs:
 
             -   name: Reload Docker Container
                 run: |
+                    cd /opt/web
                     docker compose down
                     docker compose up -d --build
