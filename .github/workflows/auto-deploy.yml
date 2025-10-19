@@ -1,0 +1,20 @@
+name: Deploy to VPS
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy:
+        runs-on: self-hosted
+        steps:
+            -   name: Pull latest code
+                run: |
+                    cd /opt/web
+                    git pull origin main
+
+            -   name: Reload Docker Container
+                run: |
+                    docker compose down
+                    docker compose up -d --build
