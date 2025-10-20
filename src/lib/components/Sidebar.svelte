@@ -33,5 +33,11 @@
     >
       Wedding Schedule
     </a>
+    <a
+      href="/package"
+      class="block px-4 py-3 text-gray-700 {$page.url.pathname.startsWith('/package') ? 'bg-rose-50 border-l-4 border-rose-400' : 'hover:bg-gray-50'} font-medium transition duration-200 rounded-r"
+    >
+      Package Management
+    </a>
   </nav>
 </aside>
