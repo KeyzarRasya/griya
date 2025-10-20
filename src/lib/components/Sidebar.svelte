@@ -23,7 +23,7 @@
     </a>
     <a
       href="/fitting"
-      class="block px-4 py-3 text-gray-700 {$page.url.pathname === '/fitting' ? 'bg-rose-50 border-l-4 border-rose-400' : 'hover:bg-gray-50'} font-medium transition duration-200 rounded-r"
+      class="block px-4 py-3 text-gray-700 {$page.url.pathname.startsWith('/fitting') ? 'bg-rose-50 border-l-4 border-rose-400' : 'hover:bg-gray-50'} font-medium transition duration-200 rounded-r"
     >
       Fitting Form
     </a>
