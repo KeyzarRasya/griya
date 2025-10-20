@@ -41,7 +41,7 @@
   let amongTamuBusanaPagarBagus = 0;
   
   function goBack() {
-    goto('/vendor');
+    goto('/package');
   }
   
   function handleDownload() {
