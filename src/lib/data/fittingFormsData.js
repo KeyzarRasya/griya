@@ -8,7 +8,11 @@ export const fittingFormsList = [
     tanggalAcara: '2025-11-15',
     status: 'Draft',
     createdAt: '2025-10-10',
-    lastUpdated: '2025-10-15'
+    lastUpdated: '2025-10-15',
+    files: [
+      'Invoice',
+      'Kwitansi'
+    ]
   },
   {
     id: 2,
@@ -17,7 +21,11 @@ export const fittingFormsList = [
     tanggalAcara: '2025-11-20',
     status: 'Completed',
     createdAt: '2025-10-08',
-    lastUpdated: '2025-10-14'
+    lastUpdated: '2025-10-14',
+    files: [
+      'Invoice',
+      'Kwitansi'
+    ]
   },
   {
     id: 3,
@@ -26,7 +34,10 @@ export const fittingFormsList = [
     tanggalAcara: '2025-11-25',
     status: 'In Progress',
     createdAt: '2025-10-12',
-    lastUpdated: '2025-10-16'
+    lastUpdated: '2025-10-16',
+    files: [
+      'Invoice',
+    ]
   },
   {
     id: 4,
@@ -35,7 +46,8 @@ export const fittingFormsList = [
     tanggalAcara: '2025-12-01',
     status: 'Draft',
     createdAt: '2025-10-11',
-    lastUpdated: '2025-10-13'
+    lastUpdated: '2025-10-13',
+    files: []
   },
   {
     id: 5,
@@ -44,7 +56,11 @@ export const fittingFormsList = [
     tanggalAcara: '2025-12-05',
     status: 'Completed',
     createdAt: '2025-10-09',
-    lastUpdated: '2025-10-15'
+    lastUpdated: '2025-10-15',
+    files: [
+      'Invoice',
+      'Kwitansi'
+    ]
   },
   {
     id: 6,
@@ -53,7 +69,11 @@ export const fittingFormsList = [
     tanggalAcara: '2025-12-10',
     status: 'In Progress',
     createdAt: '2025-10-14',
-    lastUpdated: '2025-10-17'
+    lastUpdated: '2025-10-17',
+    files: [
+      'Invoice',
+      'Kwitansi'
+    ]
   }
 ];
 
