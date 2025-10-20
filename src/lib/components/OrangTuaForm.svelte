@@ -359,7 +359,11 @@
                   <input type="text" bind:value={wanita.ukuranSelop} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
                 </td>
                 <td class="px-4 py-2 border border-gray-300">
-                  <input type="text" bind:value={wanita.ukuranHijabHairdo} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
+                  <select bind:value={wanita.ukuranHijabHairdo} name="hijabhairdo" id="" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm">
+                      <option value="">Pilih --------------------------</option>
+                      <option value="hijab">Hijab</option>
+                      <option value="hairdo">Hairdo</option>
+                  </select>
                 </td>
                 <td class="px-4 py-2 border border-gray-300">
                   <textarea bind:value={wanita.keterangan} rows="2" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm resize-none"></textarea>
@@ -424,7 +428,11 @@
                 <input type="text" bind:value={penerima.ukuranBusana} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
               </td>
               <td class="px-4 py-2 border border-gray-300">
-                <input type="text" bind:value={penerima.ukuranHijabHairdo} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
+                <select bind:value={penerima.ukuranHijabHairdo} name="hijabhairdo" id="" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm">
+                    <option value="">Pilih -------------</option>
+                    <option value="hijab">Hijab</option>
+                    <option value="hairdo">Hairdo</option>
+                </select>
               </td>
               <td class="px-4 py-2 border border-gray-300">
                 <textarea bind:value={penerima.keterangan} rows="2" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm resize-none"></textarea>
