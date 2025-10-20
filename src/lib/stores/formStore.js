@@ -29,8 +29,22 @@ const initialFormData = {
       ibuCpp: { nama: '', akad: '', resepsi: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' }
     },
     amongTamu: {
-      pria: [{ nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' }],
-      wanita: [{ nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' }]
+      pria: [
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' },
+      ],
+      wanita: [
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' },
+      ]
     },
     penerimaBukuTamu: [
       { nama: '', warnaKode: '', ukuranBusana: '', ukuranHijabHairdo: '', keterangan: '' }
