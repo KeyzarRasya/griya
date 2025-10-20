@@ -4,6 +4,13 @@
 <!-- ============================================ -->
 <script>
   import { formData } from '$lib/stores/formStore.js';
+  import { page } from '$app/stores';
+  import {getFormById} from "$lib/data/fittingFormsData"
+
+  let currentFormId = $page.params.id;
+  let currentData = getFormById(currentFormId)
+
+  console.log(currentData)
 
   // Initialize rincian biaya data if not exists
   if (!$formData.rincianBiaya) {
@@ -21,7 +28,7 @@
         ]
       },
       perincianPembayaran: [
-        { tanggal: '', cashTransfer: '', jumlah: 0 }
+        { tanggal: '', metode:'', cashTransfer: '', jumlah: 0 }
       ]
     };
   }
@@ -126,6 +133,10 @@
       currency: 'IDR',
       minimumFractionDigits: 0
     }).format(value);
+  }
+
+  function downloadKwitansi(value){
+    alert("Downloaded")
   }
 </script>
 
@@ -326,9 +337,10 @@
           <tr class="bg-gray-50">
             <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300 w-8">No</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Tanggal Pembayaran</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Pembayaran</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Cash/Transfer</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Jumlah</th>
-            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-16">Aksi</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-16" colspan="2">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -341,6 +353,17 @@
                   bind:value={pembayaran.tanggal}
                   class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" 
                 />
+              </td>
+              <td class="px-4 py-2 border border-gray-300">
+                <select 
+                  bind:value={pembayaran.metode}
+                  class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm"
+                >
+                  <option value="">Pilih</option>
+                  <option value="DP">DP</option>
+                  <option value="Full">Full</option>
+                  <option value="Deposit">Deposit</option>
+                </select>
               </td>
               <td class="px-4 py-2 border border-gray-300">
                 <select 
@@ -359,6 +382,17 @@
                   class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm text-right" 
                 />
               </td>
+              {#if currentData?.files.length > 0}
+                <td class="px-4 py-2 text-center border border-gray-300">
+                  <div class="grid grid-cols-1 gap-1">
+                    {#each currentData?.files as file}
+                      <button type="button" on:click={() => removePembayaran(idx)} class="px-2 py-1 font-bold text-blue-500 bg-white hover:bg-blue-500 hover:text-white text-xs rounded transition duration-200">
+                        {file}
+                      </button>
+                    {/each}
+                  </div>
+                </td>
+              {/if}
               <td class="px-4 py-2 text-center border border-gray-300">
                 <button type="button" on:click={() => removePembayaran(idx)} class="px-2 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded transition duration-200">
                   Hapus
@@ -369,9 +403,8 @@
 
           <!-- Total Pembayaran -->
           <tr class="bg-blue-50 font-semibold">
-            <td class="px-4 py-3 border border-gray-300" colspan="3"></td>
-            <td class="px-4 py-3 text-sm text-gray-800 border border-gray-300">Total Pembayaran</td>
-            <td class="px-4 py-3 text-right text-sm text-gray-800 border border-gray-300">{formatCurrency(totalPembayaran)}</td>
+            <td class="px-4 py-3 text-sm text-gray-800 border border-gray-300" colspan="4">Total Pembayaran</td>
+            <td class="px-4 py-3 text-right text-sm text-gray-800 border border-gray-300" colspan="3">{formatCurrency(totalPembayaran)}</td>
           </tr>
         </tbody>
       </table>
