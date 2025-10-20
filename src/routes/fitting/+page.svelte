@@ -1,17 +1,43 @@
 <script>
   import { goto } from '$app/navigation';
   import { marketingStaff } from '$lib/data/mockData.js';
-  import { fittingFormsList, getFormsByMarketing } from '$lib/data/fittingFormsData.js';
+  import { fittingFormsList } from '$lib/data/fittingFormsData.js';
 
+  let searchDate = '';
   let selectedMarketing = '';
-  let filteredForms = [];
+  let searchNamaPengantin = '';
+  let filteredForms = [...fittingFormsList]; // Show all by default
 
+  // Reactive statement to filter forms based on all criteria
   $: {
-    filteredForms = getFormsByMarketing(selectedMarketing);
+    filteredForms = fittingFormsList.filter(form => {
+      let matchDate = true;
+      let matchMarketing = true;
+      let matchPengantin = true;
+
+      // Filter by date if specified
+      if (searchDate) {
+        matchDate = form.tanggalAcara === searchDate;
+      }
+
+      // Filter by marketing if specified
+      if (selectedMarketing) {
+        matchMarketing = form.marketingName === selectedMarketing;
+      }
+
+      // Filter by nama pengantin if specified
+      if (searchNamaPengantin.trim()) {
+        matchPengantin = form.namaPengantin.toLowerCase().includes(searchNamaPengantin.toLowerCase());
+      }
+
+      return matchDate && matchMarketing && matchPengantin;
+    });
   }
 
-  function handleMarketingChange() {
-    filteredForms = getFormsByMarketing(selectedMarketing);
+  function resetSearch() {
+    searchDate = '';
+    selectedMarketing = '';
+    searchNamaPengantin = '';
   }
 
   function openForm(id) {
@@ -59,104 +85,139 @@
     </button>
   </div>
 
-  <!-- Marketing Staff Dropdown -->
-  <div class="mb-8">
-    <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Marketing Staff</label>
-    <select 
-      bind:value={selectedMarketing}
-      on:change={handleMarketingChange}
-      class="w-full md:w-96 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
-    >
-      <option value="">-- Pilih Marketing --</option>
-      {#each marketingStaff as staff}
-        <option value={staff}>{staff}</option>
-      {/each}
-    </select>
+  <!-- Search Filters -->
+  <div class="mb-8 bg-gray-50 rounded-lg p-6 border border-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <!-- Marketing Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Marketing Staff</label>
+        <select 
+          bind:value={selectedMarketing}
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
+        >
+          <option value="">-- Semua Marketing --</option>
+          {#each marketingStaff as staff}
+            <option value={staff}>{staff}</option>
+          {/each}
+        </select>
+      </div>
+
+      
+      
+      <!-- Nama Pengantin Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Pengantin</label>
+        <input
+        bind:value={searchNamaPengantin}
+        type="text"
+        placeholder="Cari nama pengantin..."
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
+        />
+      </div>
+      
+      <!-- Tanggal Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Acara</label>
+        <input
+          bind:value={searchDate}
+          type="date"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
+        />
+      </div>
+    </div>
+    
+    <!-- Reset Button -->
+    {#if searchDate || selectedMarketing || searchNamaPengantin}
+      <div class="flex justify-end">
+        <button
+          on:click={resetSearch}
+          class="text-rose-600 hover:text-rose-700 text-sm font-medium flex items-center gap-1"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          Reset Filter
+        </button>
+      </div>
+    {/if}
   </div>
 
-  <!-- Forms List -->
-  {#if selectedMarketing}
-    <div class="mt-6">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">
-        Fitting Forms untuk {selectedMarketing}
-        <span class="text-sm font-normal text-gray-600 ml-2">({filteredForms.length} form)</span>
-      </h3>
+  <!-- Results Section -->
+  <div>
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+      Daftar Fitting Forms
+      <span class="text-sm font-normal text-gray-600 ml-2">({filteredForms.length} form)</span>
+    </h3>
 
-      {#if filteredForms.length > 0}
-        <div class="grid grid-cols-1 gap-4">
-          {#each filteredForms as form}
-            <button
-              on:click={() => openForm(form.id)}
-              class="bg-white border border-gray-200 rounded-lg p-6 hover:border-rose-300 hover:shadow-md transition duration-200 text-left"
-            >
-              <div class="flex items-start justify-between">
-                <div class="flex-1">
-                  <div class="flex items-center gap-3 mb-2">
-                    <h4 class="text-lg font-semibold text-gray-800">{form.namaPengantin}</h4>
-                    <span class="px-3 py-1 text-xs font-medium rounded-full {getStatusBadgeClass(form.status)}">
-                      {form.status}
-                    </span>
+    {#if filteredForms.length > 0}
+      <div class="grid grid-cols-1 gap-4">
+        {#each filteredForms as form}
+          <button
+            on:click={() => openForm(form.id)}
+            class="bg-white border border-gray-200 rounded-lg p-6 hover:border-rose-300 hover:shadow-md transition duration-200 text-left"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <h4 class="text-lg font-semibold text-gray-800">{form.namaPengantin}</h4>
+                  <span class="px-3 py-1 text-xs font-medium rounded-full {getStatusBadgeClass(form.status)}">
+                    {form.status}
+                  </span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  <div class="flex items-center text-sm text-gray-600">
+                    <svg class="w-4 h-4 mr-2 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span class="font-medium">Marketing:</span>
+                    <span class="ml-2">{form.marketingName}</span>
                   </div>
                   
-                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                    <div class="flex items-center text-sm text-gray-600">
-                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                      </svg>
-                      <span>Acara: {formatDate(form.tanggalAcara)}</span>
-                    </div>
-                    
-                    <div class="flex items-center text-sm text-gray-600">
-                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <span>Dibuat: {formatDate(form.createdAt)}</span>
-                    </div>
-                    
-                    <div class="flex items-center text-sm text-gray-600">
-                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                      </svg>
-                      <span>Update: {formatDate(form.lastUpdated)}</span>
-                    </div>
+                  <div class="flex items-center text-sm text-gray-600">
+                    <svg class="w-4 h-4 mr-2 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <span class="font-medium">Tanggal:</span>
+                    <span class="ml-2">{formatDate(form.tanggalAcara)}</span>
+                  </div>
+
+                  <div class="flex items-center text-sm text-gray-600">
+                    <svg class="w-4 h-4 mr-2 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-medium">Terakhir Update:</span>
+                    <span class="ml-2">{formatDate(form.lastUpdated)}</span>
                   </div>
                 </div>
-
-                <div class="ml-4">
-                  <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                  </svg>
-                </div>
               </div>
-            </button>
-          {/each}
-        </div>
-      {:else}
-        <div class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-          <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          <h3 class="text-lg font-medium text-gray-900 mb-2">Belum Ada Fitting Form</h3>
-          <p class="text-gray-600 mb-4">Belum ada fitting form untuk {selectedMarketing}</p>
-          <button
-            on:click={createNewForm}
-            class="inline-flex items-center gap-2 bg-rose-400 hover:bg-rose-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Buat Fitting Form Pertama
+              
+              <svg class="w-5 h-5 text-gray-400 ml-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </div>
           </button>
-        </div>
-      {/if}
-    </div>
-  {:else}
-    <div class="text-center py-16 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-      <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-      </svg>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">Pilih Marketing Staff</h3>
-      <p class="text-gray-600">Silakan pilih marketing staff dari dropdown di atas untuk melihat daftar fitting forms</p>
-    </div>
-  {/if}
+        {/each}
+      </div>
+    {:else}
+      <div class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak Ada Data</h3>
+        <p class="text-gray-600 mb-4">
+          Tidak ada fitting form yang sesuai dengan filter yang dipilih
+        </p>
+        <button
+          on:click={createNewForm}
+          class="inline-flex items-center gap-2 bg-rose-400 hover:bg-rose-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Buat Fitting Form Baru
+        </button>
+      </div>
+    {/if}
+  </div>
 </div>
