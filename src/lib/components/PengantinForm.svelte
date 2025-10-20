@@ -125,9 +125,18 @@
         {/each}
       </select>
     </div>
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">Paket Rias</label>
-      <input bind:value={$formData.pilihanMua} type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none" />
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label for="vendors" class="block text-sm font-medium text-gray-700 mb-2">Pilihan Vendor</label>
+        <select bind:value={$formData.pilihanVendor} name="vendors" id="vendors" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none">
+          <option value="griya">Griya</option>
+          <option value="a">Vendor A</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Paket Rias</label>
+        <input readonly={!$formData.pilihanVendor} bind:value={$formData.pilihanMua} type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none" />
+      </div>
     </div>
   </div>
 

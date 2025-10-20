@@ -5,28 +5,28 @@
   const vendors = [
     {
       id: 'v001',
-      name: 'Rias Pengantin Elegan',
-      type: 'Make Up Artist',
+      name: 'Paket A',
+      type: 'cathering',
       contact: '0812-3456-7890',
       lastUpdated: '2025-10-15'
     },
     {
       id: 'v002',
-      name: 'Busana Nusantara',
-      type: 'Busana',
+      name: 'Paket B',
+      type: 'Wedding Organizer',
       contact: '0813-4567-8901',
       lastUpdated: '2025-10-12'
     },
     {
       id: 'v003',
-      name: 'Dekorasi Impian',
-      type: 'Dekorasi',
+      name: 'Paket A',
+      type: 'Cathering',
       contact: '0814-5678-9012',
       lastUpdated: '2025-10-10'
     },
     {
       id: 'v004',
-      name: 'Fotografi Cantik',
+      name: 'Packet D',
       type: 'Photographer',
       contact: '0815-6789-0123',
       lastUpdated: '2025-10-08'
