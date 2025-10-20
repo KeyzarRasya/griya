@@ -6,16 +6,25 @@
   import { formData } from '$lib/stores/formStore.js';
   import { page } from '$app/stores';
   import {getFormById} from "$lib/data/fittingFormsData"
+	import { goto } from '$app/navigation';
 
   let currentFormId = $page.params.id;
-  let currentData = getFormById(currentFormId)
+  let isNewForm = currentFormId === 'new';
+  let currentData = null
+
+  if (!isNewForm) {
+    currentData = getFormById(currentFormId)
+    if (!currentData) {
+      goto("/fitting")
+    }
+  }
 
   console.log(currentData)
 
   // Initialize rincian biaya data if not exists
   if (!$formData.rincianBiaya) {
     $formData.rincianBiaya = {
-      namaPengantin: '',
+      namaPengantin: currentData?.namaPengantin,
       tanggalAcara: '',
       pilihanPaket: '',
       perincianBiaya: {
@@ -147,8 +156,9 @@
       <label class="block text-sm font-medium text-gray-700 mb-2">Nama Pengantin</label>
       <input 
         type="text" 
-        bind:value={$formData.rincianBiaya.namaPengantin} 
+        bind:value={$formData.rincianBiaya.namaPengantin}
         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none" 
+        readonly
       />
     </div>
     <div>
