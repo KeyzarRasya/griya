@@ -9,9 +9,9 @@
   $: if (showModal) {
     if (fittings.length === 0) {
       fittingOptions = [
-        {name: 'Fitting 1', ukuran: '', readonly: true},
-        {name: 'Fitting 2', ukuran: '', readonly: true},
-        {name: 'Fitting 3', ukuran: '', readonly: true}
+        {name: 'Lingkar Dada', ukuran: '', readonly: true},
+        {name: 'Ketiak', ukuran: '', readonly: true},
+        {name: 'Lengan', ukuran: '', readonly: true}
       ];
     } else {
       fittingOptions = JSON.parse(JSON.stringify(fittings));
