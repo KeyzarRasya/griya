@@ -245,7 +245,7 @@
           <div><input bind:value={$formData.pengantinWanita.akad.ukuranSelop} type="text" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" /></div>
           <div><input bind:value={$formData.pengantinWanita.resepsi.ukuranSelop} type="text" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" /></div>
         </div>
-
+        
         <!-- Adat -->
         <div class="grid grid-cols-3 gap-4">
           <div class="text-sm font-medium text-gray-700">ADAT</div>
@@ -348,12 +348,14 @@
             {#if $formData.pengantinWanita.akad.fittings.length > 0}
               <div class="space-y-2 mb-2">
                 {#each $formData.pengantinWanita.akad.fittings as fitting, idx}
-                  <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
-                    <span class="text-gray-700">{fitting.name}: {fitting.ukuran}</span>
-                    <button type="button" on:click={() => removeFitting('wanita', 'akad', idx)} class="text-red-600 hover:text-red-800 font-medium text-xs">
-                      Hapus
-                    </button>
-                  </div>
+                  {#if fitting.ukuran !== ''}
+                    <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
+                      <span class="text-gray-700">{fitting.name}: {fitting.ukuran}</span>
+                      <button type="button" on:click={() => removeFitting('wanita', 'akad', idx)} class="text-red-600 hover:text-red-800 font-medium text-xs">
+                        Hapus
+                      </button>
+                    </div>
+                  {/if}
                 {/each}
               </div>
             {/if}
@@ -365,12 +367,14 @@
             {#if $formData.pengantinWanita.resepsi.fittings.length > 0}
               <div class="space-y-2 mb-2">
                 {#each $formData.pengantinWanita.resepsi.fittings as fitting, idx}
-                  <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
-                    <span class="text-gray-700">{fitting.name}: {fitting.ukuran}</span>
-                    <button type="button" on:click={() => removeFitting('wanita', 'resepsi', idx)} class="text-red-600 hover:text-red-800 font-medium text-xs">
-                      Hapus
-                    </button>
-                  </div>
+                  {#if fitting.ukuran !== ''}
+                    <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
+                      <span class="text-gray-700">{fitting.name}: {fitting.ukuran}</span>
+                      <button type="button" on:click={() => removeFitting('wanita', 'resepsi', idx)} class="text-red-600 hover:text-red-800 font-medium text-xs">
+                        Hapus
+                      </button>
+                    </div>
+                  {/if}
                 {/each}
               </div>
             {/if}
@@ -530,12 +534,14 @@
             {#if $formData.pengantinPria.akad.fittings.length > 0}
               <div class="space-y-2 mb-2">
                 {#each $formData.pengantinPria.akad.fittings as fitting, idx}
-                  <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
-                    <span class="text-gray-700">{fitting.name}: {fitting.ukuran}</span>
-                    <button type="button" on:click={() => removeFitting('pria', 'akad', idx)} class="text-red-600 hover:text-red-800 font-medium text-xs">
-                      Hapus
-                    </button>
-                  </div>
+                  {#if fitting.ukuran !== ''}
+                    <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
+                      <span class="text-gray-700">{fitting.name}: {fitting.ukuran}</span>
+                      <button type="button" on:click={() => removeFitting('pria', 'akad', idx)} class="text-red-600 hover:text-red-800 font-medium text-xs">
+                        Hapus
+                      </button>
+                    </div>
+                  {/if}
                 {/each}
               </div>
             {/if}
@@ -547,12 +553,14 @@
             {#if $formData.pengantinPria.resepsi.fittings.length > 0}
               <div class="space-y-2 mb-2">
                 {#each $formData.pengantinPria.resepsi.fittings as fitting, idx}
-                  <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
-                    <span class="text-gray-700">{fitting.name}: {fitting.ukuran}</span>
-                    <button type="button" on:click={() => removeFitting('pria', 'resepsi', idx)} class="text-red-600 hover:text-red-800 font-medium text-xs">
-                      Hapus
-                    </button>
-                  </div>
+                  {#if fitting.ukuran !== ''}
+                    <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
+                      <span class="text-gray-700">{fitting.name}: {fitting.ukuran}</span>
+                      <button type="button" on:click={() => removeFitting('pria', 'resepsi', idx)} class="text-red-600 hover:text-red-800 font-medium text-xs">
+                        Hapus
+                      </button>
+                    </div>
+                  {/if}
                 {/each}
               </div>
             {/if}
