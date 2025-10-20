@@ -10,6 +10,7 @@ const initialFormData = {
   adatAkad: '',
   resepsi: '',
   warnaHandbouquet: '',
+  pilihanVendor:'',
   pilihanMua: '',
   pengantinWanita: {
     akad: { warnaKodeBusana: '', ukuranSelop: '', adat: '', kain: null, requests: [], fittingNotes: '', fittings: [] },
