@@ -306,11 +306,8 @@
         <div class="grid grid-cols-3 gap-4">
           <div class="text-sm font-medium text-gray-700">REQUEST</div>
           <div>
-            <button type="button" on:click={() => openRequestModal('wanita', 'akad')} class="w-full px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white text-sm rounded transition duration-200 mb-2">
-              Tambah Request
-            </button>
             {#if $formData.pengantinWanita.akad.requests.length > 0}
-              <div class="space-y-2">
+              <div class="space-y-2 mb-2">
                 {#each $formData.pengantinWanita.akad.requests as request, idx}
                   <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
                     <span class="text-gray-700">{request.items}</span>
@@ -321,13 +318,13 @@
                 {/each}
               </div>
             {/if}
-          </div>
-          <div>
-            <button type="button" on:click={() => openRequestModal('wanita', 'resepsi')} class="w-full px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white text-sm rounded transition duration-200 mb-2">
+            <button type="button" on:click={() => openRequestModal('wanita', 'akad')} class="w-full px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white text-sm rounded transition duration-200 mb-2">
               Tambah Request
             </button>
+          </div>
+          <div>
             {#if $formData.pengantinWanita.resepsi.requests.length > 0}
-              <div class="space-y-2">
+              <div class="space-y-2 mb-2">
                 {#each $formData.pengantinWanita.resepsi.requests as request, idx}
                   <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
                     <span class="text-gray-700">{request.items}</span>
@@ -338,6 +335,9 @@
                 {/each}
               </div>
             {/if}
+            <button type="button" on:click={() => openRequestModal('wanita', 'resepsi')} class="w-full px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white text-sm rounded transition duration-200 mb-2">
+              Tambah Request
+            </button>
           </div>
         </div>
 
@@ -492,11 +492,8 @@
         <div class="grid grid-cols-3 gap-4">
           <div class="text-sm font-medium text-gray-700">REQUEST</div>
           <div>
-            <button type="button" on:click={() => openRequestModal('pria', 'akad')} class="w-full px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white text-sm rounded transition duration-200 mb-2">
-              Tambah Request
-            </button>
             {#if $formData.pengantinPria.akad.requests.length > 0}
-              <div class="space-y-2">
+              <div class="space-y-2 mb-2">
                 {#each $formData.pengantinPria.akad.requests as request, idx}
                   <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
                     <span class="text-gray-700">{request.items}</span>
@@ -507,13 +504,13 @@
                 {/each}
               </div>
             {/if}
-          </div>
-          <div>
-            <button type="button" on:click={() => openRequestModal('pria', 'resepsi')} class="w-full px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white text-sm rounded transition duration-200 mb-2">
+            <button type="button" on:click={() => openRequestModal('pria', 'akad')} class="w-full px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white text-sm rounded transition duration-200 mb-2">
               Tambah Request
             </button>
+          </div>
+          <div>
             {#if $formData.pengantinPria.resepsi.requests.length > 0}
-              <div class="space-y-2">
+              <div class="space-y-2 mb-2">
                 {#each $formData.pengantinPria.resepsi.requests as request, idx}
                   <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
                     <span class="text-gray-700">{request.items}</span>
@@ -524,6 +521,9 @@
                 {/each}
               </div>
             {/if}
+            <button type="button" on:click={() => openRequestModal('pria', 'resepsi')} class="w-full px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white text-sm rounded transition duration-200 mb-2">
+              Tambah Request
+            </button>
           </div>
         </div>
 
