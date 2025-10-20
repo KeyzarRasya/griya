@@ -113,7 +113,7 @@
             </div>
             <div class="flex items-center gap-4">
               {#if getDaysUntil(wedding.weddingDate) === 0}
-                <span class="px-4 py-2 bg-red-100 text-red-800 text-sm font-medium rounded-full">Today</span>
+                <span class="px-4 py-2 bg-green-100 text-green-800 text-sm font-medium rounded-full">Today</span>
               {:else if getDaysUntil(wedding.weddingDate) === 1}
                 <span class="px-4 py-2 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">Tomorrow</span>
               {:else}
