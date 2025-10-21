@@ -45,5 +45,11 @@
     >
       Contact Management
     </a>
+    <a
+      href="/pricelist"
+      class="block px-4 py-3 text-gray-700 {$page.url.pathname.startsWith('/pricelist') ? 'bg-rose-50 border-l-4 border-rose-400' : 'hover:bg-gray-50'} font-medium transition duration-200 rounded-r"
+    >
+      Pricelist
+    </a>
   </nav>
 </aside>
