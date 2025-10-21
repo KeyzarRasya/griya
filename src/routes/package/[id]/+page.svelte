@@ -1,6 +1,7 @@
 <script>
   import { goto } from '$app/navigation';
   import { muaList } from '$lib/data/mockData.js';
+  import { paketDaftarHarga } from '$lib/data/pricelistData.js';
   
   // Form state
   let vendorName = '';
@@ -39,6 +40,103 @@
   let amongTamuRias = 0;
   let amongTamuKainPagarAyu = 0;
   let amongTamuBusanaPagarBagus = 0;
+  
+  // Product Addition
+  let isAddingProduct = false;
+  let searchQuery = '';
+  let filteredProducts = [];
+  let selectedProducts = [];
+  let showSuggestions = false;
+  let editingProductIndex = null;
+  let editingPrice = 0;
+
+  function formatCurrency(amount) {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(amount);
+  }
+
+  function getSectionLabel(section) {
+    const labels = {
+      'pengantin': 'Pengantin',
+      'adat': 'Adat',
+      'lainLain': 'Lain-Lain'
+    };
+    return labels[section] || section;
+  }
+
+  function startAddingProduct() {
+    isAddingProduct = true;
+    searchQuery = '';
+    filteredProducts = [];
+    showSuggestions = false;
+  }
+
+  function handleSearchInput() {
+    if (searchQuery.trim() === '') {
+      filteredProducts = [];
+      showSuggestions = false;
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    filteredProducts = paketDaftarHarga.filter(product => {
+      const isAlreadyAdded = selectedProducts.some(p => p.id === product.id);
+      if (isAlreadyAdded) return false;
+      return product.item.toLowerCase().includes(query);
+    });
+
+    showSuggestions = filteredProducts.length > 0;
+  }
+
+  function selectProduct(product) {
+    const newProduct = {
+      id: product.id,
+      kategori: getSectionLabel(product.section),
+      nama: product.item,
+      harga: product.price
+    };
+
+    selectedProducts = [...selectedProducts, newProduct];
+
+    searchQuery = '';
+    filteredProducts = [];
+    showSuggestions = false;
+    isAddingProduct = false;
+  }
+
+  function removeProduct(index) {
+    selectedProducts.splice(index, 1);
+    selectedProducts = [...selectedProducts];
+  }
+
+  function startEditPrice(index) {
+    editingProductIndex = index;
+    editingPrice = selectedProducts[index].harga;
+  }
+
+  function saveEditPrice() {
+    if (editingProductIndex !== null) {
+      selectedProducts[editingProductIndex].harga = editingPrice;
+      selectedProducts = [...selectedProducts];
+      editingProductIndex = null;
+      editingPrice = 0;
+    }
+  }
+
+  function cancelEditPrice() {
+    editingProductIndex = null;
+    editingPrice = 0;
+  }
+
+  function cancelAddingProduct() {
+    isAddingProduct = false;
+    searchQuery = '';
+    filteredProducts = [];
+    showSuggestions = false;
+  }
   
   function goBack() {
     goto('/package');
@@ -80,6 +178,7 @@
         kainPagarAyu: amongTamuKainPagarAyu,
         busanaPagarBagus: amongTamuBusanaPagarBagus
       },
+      productAdditions: selectedProducts,
       termsConditions
     };
     
@@ -114,18 +213,6 @@
   </div>
 
   <form on:submit={handleSubmit} class="space-y-6">
-    <!-- Vendor Name -->
-    <!-- <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">Nama Vendor</label>
-      <input
-        type="text"
-        bind:value={vendorName}
-        required
-        placeholder="Masukkan nama vendor..."
-        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
-      />
-    </div> -->
-
     <!-- Paket -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">Paket</label>
@@ -403,6 +490,163 @@
             class="w-24 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm"
           />
         </div>
+      </div>
+    </div>
+
+    <!-- Product Addition Section -->
+    <div class="border border-gray-300 rounded-lg p-6">
+      <h3 class="text-xl font-semibold text-gray-800 mb-6 text-center bg-orange-100 py-2 -mx-6 -mt-6 rounded-t-lg">Penambahan Produk</h3>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300">Kategori</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300">Nama</th>
+              <th class="px-4 py-3 text-right text-sm font-semibold text-gray-800 border border-gray-300">Harga</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-24">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#if selectedProducts.length === 0 && !isAddingProduct}
+              <!-- Empty State -->
+              <tr>
+                <td colspan="4" class="px-4 py-8 text-center border border-gray-300">
+                  <button
+                    type="button"
+                    on:click={startAddingProduct}
+                    class="text-rose-600 hover:text-rose-700 font-medium text-sm transition duration-200"
+                  >
+                    Add Product
+                  </button>
+                </td>
+              </tr>
+            {:else}
+              <!-- Show Added Products -->
+              {#each selectedProducts as product, index}
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm text-gray-700 border border-gray-300">{product.kategori}</td>
+                  <td class="px-4 py-3 text-sm text-gray-700 border border-gray-300">{product.nama}</td>
+                  <td class="px-4 py-3 text-sm text-gray-900 text-right font-medium border border-gray-300">
+                    {#if editingProductIndex === index}
+                      <input
+                        type="number"
+                        bind:value={editingPrice}
+                        class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm text-right"
+                      />
+                    {:else}
+                      {formatCurrency(product.harga)}
+                    {/if}
+                  </td>
+                  <td class="px-4 py-3 text-center border border-gray-300">
+                    {#if editingProductIndex === index}
+                      <div class="flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          on:click={saveEditPrice}
+                          class="p-1.5 text-green-600 hover:bg-green-50 rounded transition duration-200"
+                          title="Simpan"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          on:click={cancelEditPrice}
+                          class="p-1.5 text-gray-600 hover:bg-gray-50 rounded transition duration-200"
+                          title="Batal"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    {:else}
+                      <div class="flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          on:click={() => startEditPrice(index)}
+                          class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition duration-200"
+                          title="Edit Harga"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          on:click={() => removeProduct(index)}
+                          class="p-1.5 text-red-600 hover:bg-red-50 rounded transition duration-200"
+                          title="Hapus"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    {/if}
+                  </td>
+                </tr>
+              {/each}
+
+              <!-- Add Product Row -->
+              <tr>
+                <td colspan="4" class="px-4 py-3 text-center border border-gray-300">
+                  {#if isAddingProduct}
+                    <div class="relative">
+                      <input
+                        type="text"
+                        bind:value={searchQuery}
+                        on:input={handleSearchInput}
+                        placeholder="Cari produk..."
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm"
+                        autofocus
+                      />
+                      
+                      <!-- Suggestions Dropdown -->
+                      {#if showSuggestions}
+                        <div class="absolute z-10 w-full bottom-full mb-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                          {#each filteredProducts as product}
+                            <button
+                              type="button"
+                              on:click={() => selectProduct(product)}
+                              class="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition duration-200"
+                            >
+                              <div class="flex items-center justify-between">
+                                <div>
+                                  <p class="text-sm font-medium text-gray-900">{product.item}</p>
+                                  <p class="text-xs text-gray-500">{getSectionLabel(product.section)}</p>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700">{formatCurrency(product.price)}</span>
+                              </div>
+                            </button>
+                          {/each}
+                        </div>
+                      {/if}
+                      
+                      <button
+                        type="button"
+                        on:click={cancelAddingProduct}
+                        class="mt-2 text-gray-600 hover:text-gray-800 font-medium text-sm transition duration-200"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  {:else}
+                    <button
+                      type="button"
+                      on:click={startAddingProduct}
+                      class="text-rose-600 hover:text-rose-700 font-medium text-sm transition duration-200"
+                    >
+                      Add Product
+                    </button>
+                  {/if}
+                </td>
+              </tr>
+            {/if}
+          </tbody>
+        </table>
       </div>
     </div>
 
