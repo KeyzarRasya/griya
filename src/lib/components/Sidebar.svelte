@@ -4,7 +4,7 @@
 
 <aside class="w-64 bg-white shadow-lg">
   <div class="p-6 border-b border-gray-200">
-    <h1 class="text-2xl font-serif text-gray-800">Wedding Rental</h1>
+    <h1 class="text-2xl font-serif text-gray-800">Griya Aristy</h1>
     <p class="text-sm text-gray-500 mt-1">Management System</p>
   </div>
 
