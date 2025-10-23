@@ -26,11 +26,11 @@
     $formData.rincianBiaya = {
       namaPengantin: currentData?.namaPengantin,
       tanggalAcara: '',
-      pilihanPaket: '',
+      pilihanVendor: '',
       perincianBiaya: {
         hargaPaket: { qty: 1, harga: 0, total: 0 },
         penambahan: [
-          { item: '', qty: 0, harga: 0, total: 0 }
+          { item: '', qty: 0, harga: 0, total: 0, tanggungJawabBayar: '' }
         ],
         lainnya: [
           { item: '', qty: 0, harga: 0, total: 0 }
@@ -170,12 +170,11 @@
       />
     </div>
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">Pilihan Paket</label>
-      <input 
-        type="text" 
-        bind:value={$formData.rincianBiaya.pilihanPaket} 
-        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none" 
-      />
+      <label for="vendors" class="block text-sm font-medium text-gray-700 mb-2">Pilihan Vendor</label>
+        <select bind:value={$formData.rincianBiaya.pilihanVendor} name="vendors" id="vendors" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none">
+          <option value="griya">Griya</option>
+          <option value="a">Vendor A</option>
+        </select>
     </div>
   </div>
 
@@ -193,6 +192,9 @@
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-40">Harga</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-40">Total Harga Items</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-16">Aksi</th>
+            {#if $formData.rincianBiaya.pilihanVendor != "griya"}
+              <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 ">Tanggung Jawab</th>
+            {/if}
           </tr>
         </thead>
         <tbody>
@@ -267,6 +269,14 @@
                   Hapus
                 </button>
               </td>
+              {#if $formData.rincianBiaya.pilihanVendor != "griya"}
+              <td class="px-4 py-2 text-center border border-gray-300">
+                <select bind:value={item.tanggungJawabBayar} name="vendors" id="vendors" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none">
+                  <option value="vendor">Vendor</option>
+                  <option value="customer">Customer</option>
+                </select>
+              </td>
+              {/if}
             </tr>
           {/each}
 

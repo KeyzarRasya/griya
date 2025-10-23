@@ -39,16 +39,16 @@ const initialFormData = {
         { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' },
       ],
       wanita: [
-        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' },
-        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' },
-        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' },
-        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' },
-        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' },
-        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '', isMUA: false },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '', isMUA: false },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '', isMUA: false },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '', isMUA: false },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '', isMUA: false },
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '', isMUA: false },
       ]
     },
     penerimaBukuTamu: [
-      { nama: '', warnaKode: '', ukuranBusana: '', ukuranHijabHairdo: '', keterangan: '' }
+      { nama: '', warnaKode: '', ukuranBusana: '', ukuranHijabHairdo: '', keterangan: '', isMUA: false }
     ]
   }
 };

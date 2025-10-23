@@ -19,11 +19,11 @@
           { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' }
         ],
         wanita: [
-          { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '' }
+          { nama: '', warnaKode: '', ukuranBusana: '', ukuranSelop: '', ukuranHijabHairdo: '', keterangan: '', isMUA: false }
         ]
       },
       penerimaBukuTamu: [
-        { nama: '', warnaKode: '', ukuranBusana: '', ukuranHijabHairdo: '', keterangan: '' }
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranHijabHairdo: '', keterangan: '', isMUA: falses }
       ]
     };
   }
@@ -269,7 +269,7 @@
               <th class="border border-gray-300"></th>
               <th class="border border-gray-300"></th>
               <th class="border border-gray-300"></th>
-              <th class="px-2 py-2 text-center text-xs font-medium text-gray-700 border border-gray-300">Busana</th>
+              <th class="px-2 py-2 text-center text-xs font-medium text-gray-700 border border-gray-300 w-25">Busana</th>
               <th class="px-2 py-2 text-center text-xs font-medium text-gray-700 border border-gray-300">Selop</th>
               <th class="px-2 py-2 text-center text-xs font-medium text-gray-700 border border-gray-300">Kepala</th>
               <th class="border border-gray-300"></th>
@@ -287,7 +287,13 @@
                   <textarea bind:value={pria.warnaKode} rows="2" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm resize-none"></textarea>
                 </td>
                 <td class="px-4 py-2 border border-gray-300">
-                  <input type="text" bind:value={pria.ukuranBusana} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
+                  <select bind:value={pria.ukuranBusana} name="hijabhairdo" id="" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm">
+                      <option value="">Pilih</option>
+                      <option value="s">S</option>
+                      <option value="m">M</option>
+                      <option value="l">L</option>
+                      <option value="xl">XL</option>
+                  </select>
                 </td>
                 <td class="px-4 py-2 border border-gray-300">
                   <input type="text" bind:value={pria.ukuranSelop} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
@@ -327,7 +333,9 @@
               <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300 w-8">No</th>
               <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300">NAMA</th>
               <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">WARNA & KODE BUSANA</th>
-              <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300" colspan="3">UKURAN</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300" colspan="2">UKURAN</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">MUA</th>
+            
               <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">KET</th>
               <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-16">Aksi</th>
             </tr>
@@ -335,9 +343,9 @@
               <th class="border border-gray-300"></th>
               <th class="border border-gray-300"></th>
               <th class="border border-gray-300"></th>
-              <th class="px-2 py-2 text-center text-xs font-medium text-gray-700 border border-gray-300">Busana</th>
-              <th class="px-2 py-2 text-center text-xs font-medium text-gray-700 border border-gray-300">Selop</th>
+              <th class="px-2 py-2 text-center text-xs font-medium text-gray-700 border border-gray-300 w-25">Busana</th>
               <th class="px-2 py-2 text-center text-xs font-medium text-gray-700 border border-gray-300">Hijab / Hairdo</th>
+              <th class="border border-gray-300"></th>
               <th class="border border-gray-300"></th>
               <th class="border border-gray-300"></th>
             </tr>
@@ -353,10 +361,13 @@
                   <textarea bind:value={wanita.warnaKode} rows="2" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm resize-none"></textarea>
                 </td>
                 <td class="px-4 py-2 border border-gray-300">
-                  <input type="text" bind:value={wanita.ukuranBusana} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
-                </td>
-                <td class="px-4 py-2 border border-gray-300">
-                  <input type="text" bind:value={wanita.ukuranSelop} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
+                  <select bind:value={wanita.ukuranBusana} name="hijabhairdo" id="" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm">
+                      <option value="">Pilih</option>
+                      <option value="s">S</option>
+                      <option value="m">M</option>
+                      <option value="l">L</option>
+                      <option value="xl">XL</option>
+                  </select>
                 </td>
                 <td class="px-4 py-2 border border-gray-300">
                   <select bind:value={wanita.ukuranHijabHairdo} name="hijabhairdo" id="" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm">
@@ -364,6 +375,9 @@
                       <option value="hijab">Hijab</option>
                       <option value="hairdo">Hairdo</option>
                   </select>
+                </td>
+                <td class="px-4 py-2 border border-gray-300">
+                  <input type="checkbox" bind:checked={wanita.isMUA} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
                 </td>
                 <td class="px-4 py-2 border border-gray-300">
                   <textarea bind:value={wanita.keterangan} rows="2" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm resize-none"></textarea>
@@ -401,6 +415,7 @@
             <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300">NAMA</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">WARNA & KODE BUSANA</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300" colspan="2">UKURAN</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">MUA</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">KET</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-16">Aksi</th>
           </tr>
@@ -408,8 +423,9 @@
             <th class="border border-gray-300"></th>
             <th class="border border-gray-300"></th>
             <th class="border border-gray-300"></th>
-            <th class="px-2 py-2 text-center text-xs font-medium text-gray-700 border border-gray-300">Busana</th>
+            <th class="px-2 py-2 text-center text-xs font-medium text-gray-700 border border-gray-300 w-25">Busana</th>
             <th class="px-2 py-2 text-center text-xs font-medium text-gray-700 border border-gray-300">Hijab / Hairdo</th>
+            <th class="border border-gray-300"></th>
             <th class="border border-gray-300"></th>
             <th class="border border-gray-300"></th>
           </tr>
@@ -425,8 +441,14 @@
                 <textarea bind:value={penerima.warnaKode} rows="2" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm resize-none"></textarea>
               </td>
               <td class="px-4 py-2 border border-gray-300">
-                <input type="text" bind:value={penerima.ukuranBusana} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
-              </td>
+                  <select bind:value={penerima.ukuranBusana} name="hijabhairdo" id="" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm">
+                      <option value="">Pilih</option>
+                      <option value="s">S</option>
+                      <option value="m">M</option>
+                      <option value="l">L</option>
+                      <option value="xl">XL</option>
+                  </select>
+                </td>
               <td class="px-4 py-2 border border-gray-300">
                 <select bind:value={penerima.ukuranHijabHairdo} name="hijabhairdo" id="" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm">
                     <option value="">Pilih -------------</option>
@@ -434,6 +456,9 @@
                     <option value="hairdo">Hairdo</option>
                 </select>
               </td>
+              <td class="px-4 py-2 border border-gray-300">
+                  <input type="checkbox" bind:checked={penerima.isMUA} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
+                </td>
               <td class="px-4 py-2 border border-gray-300">
                 <textarea bind:value={penerima.keterangan} rows="2" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm resize-none"></textarea>
               </td>
