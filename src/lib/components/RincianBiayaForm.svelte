@@ -1,21 +1,22 @@
 <script>
   import { formData } from '$lib/stores/formStore.js';
+  import {thirdParties} from '$lib/data/contactManagementData.js' 
 
   // Initialize rincian biaya data with new structure
   if (!$formData.rincianBiaya) {
     $formData.rincianBiaya = {
       namaPengantin: '',
       tanggalAcara: '',
-      pilihanVendor: '',
+      pilihanVendor: 'griya',
       pilihanPaket: '',
       perincianBiaya: {
-        hargaPaket: { qty: 1, harga: 0, total: 0 },
+        hargaPaket: { qty: 1, harga: 0, total: 0, tanggungJawabBayar: '' },
         sections: [
-          // {
-          //   id: Date.now() + '-paket',
-          //   name: 'Paket',
-          //   items: []
-          // },
+          {
+            id: Date.now() + '-item',
+            name: 'Item',
+            items: []
+          },
           {
             id: Date.now() + 1 + '-penambahan',
             name: 'Penambahan',
@@ -33,11 +34,11 @@
   // Ensure sections array exists for backward compatibility
   if (!$formData.rincianBiaya.perincianBiaya.sections) {
     $formData.rincianBiaya.perincianBiaya.sections = [
-      // {
-      //   id: Date.now() + '-paket',
-      //   name: 'Paket',
-      //   items: $formData.rincianBiaya.perincianBiaya.penambahan || []
-      // },
+      {
+        id: Date.now() + '-item',
+        name: 'Item',
+        items: $formData.rincianBiaya.perincianBiaya.penambahan || []
+      },
       {
         id: Date.now() + 1 + '-penambahan',
         name: 'Penambahan',
@@ -45,6 +46,16 @@
       }
     ];
     $formData.rincianBiaya.perincianBiaya.unassignedProducts = [];
+  }
+
+  // Ensure pilihanVendor field exists
+  if (!$formData.rincianBiaya.pilihanVendor) {
+    $formData.rincianBiaya.pilihanVendor = 'griya';
+  }
+
+  // Ensure tanggungJawabBayar field exists in hargaPaket
+  if (!$formData.rincianBiaya.perincianBiaya.hargaPaket.tanggungJawabBayar) {
+    $formData.rincianBiaya.perincianBiaya.hargaPaket.tanggungJawabBayar = '';
   }
 
   let draggedProduct = null;
@@ -145,7 +156,8 @@
       item: '',
       qty: 0,
       harga: 0,
-      total: 0
+      total: 0,
+      tanggungJawabBayar: ''
     };
     $formData.rincianBiaya.perincianBiaya.unassignedProducts = [
       ...$formData.rincianBiaya.perincianBiaya.unassignedProducts,
@@ -276,14 +288,21 @@
       <label for="vendors" class="block text-sm font-medium text-gray-700 mb-2">Pilihan Vendor</label>
       <select bind:value={$formData.rincianBiaya.pilihanVendor} name="vendors" id="vendors" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none">
         <option value="griya">Griya</option>
-        <option value="a">Vendor A</option>
+        {#each thirdParties as tp}
+          <option value={tp.name}>{tp.name}</option>
+        {/each}
       </select>
     </div>
     <div>
       <label for="paket" class="block text-sm font-medium text-gray-700 mb-2">Pilihan Paket</label>
       <select bind:value={$formData.rincianBiaya.pilihanPaket} name="paket" id="paket" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none">
-        <option value="pa">Paket A</option>
-        <option value="pb">Paket B</option>
+        {#each thirdParties as tp}
+          {#if tp.name == $formData.rincianBiaya.pilihanVendor}
+            {#each tp.packages as pkg}
+              <option value={pkg.packageName}>{pkg.packageName}</option>
+            {/each}
+          {/if}
+        {/each}
       </select>
     </div>
   </div>
@@ -298,6 +317,9 @@
           <tr class="bg-gray-50">
             <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300 w-8">No</th>
             <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300">Item</th>
+            {#if $formData.rincianBiaya.pilihanVendor !== 'griya'}
+              <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-32">Tanggung Jawab Bayar</th>
+            {/if}
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-24">Qty</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-40">Harga</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-40">Total Harga Items</th>
@@ -308,7 +330,25 @@
           <!-- Harga Paket -->
           <tr>
             <td class="px-4 py-2 text-center text-sm border border-gray-300">1</td>
-            <td class="px-4 py-2 text-sm font-medium text-gray-800 border border-gray-300">Harga Paket</td>
+            <td class="px-4 py-2 text-sm font-medium text-gray-800 border border-gray-300">
+              {($formData.rincianBiaya.pilihanPaket === '' || $formData.rincianBiaya.pilihanVendor === 'griya')
+                ? 'Harga Paket'
+                : $formData.rincianBiaya.pilihanPaket}
+            </td>
+
+
+            {#if $formData.rincianBiaya.pilihanVendor !== 'griya'}
+              <td class="px-4 py-2 border border-gray-300">
+                <select 
+                  bind:value={$formData.rincianBiaya.perincianBiaya.hargaPaket.tanggungJawabBayar}
+                  class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm"
+                >
+                  <option value="">Pilih</option>
+                  <option value="Customer">Customer</option>
+                  <option value="Vendor">Vendor</option>
+                </select>
+              </td>
+            {/if}
             <td class="px-4 py-2 border border-gray-300">
               <input 
                 type="number" 
@@ -338,7 +378,7 @@
               on:drop={(e) => handleDrop(e, section.id)}
             >
               <td class="px-4 py-2 text-center text-sm border border-gray-300">{sectionIdx + 2}</td>
-              <td class="px-4 py-2 text-sm font-semibold text-gray-800 border border-gray-300" colspan="4">
+              <td class="px-4 py-2 text-sm font-semibold text-gray-800 border border-gray-300" colspan="{$formData.rincianBiaya.pilihanVendor !== 'griya' ? '5' : '4'}">
                 <div class="flex items-center justify-between">
                   <input 
                     type="text" 
@@ -384,6 +424,18 @@
                     class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" 
                   />
                 </td>
+                {#if $formData.rincianBiaya.pilihanVendor !== 'griya'}
+                  <td class="px-4 py-2 border border-gray-300">
+                    <select 
+                      bind:value={item.tanggungJawabBayar}
+                      class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm"
+                    >
+                      <option value="">Pilih</option>
+                      <option value="Customer">Customer</option>
+                      <option value="Vendor">Vendor</option>
+                    </select>
+                  </td>
+                {/if}
                 <td class="px-4 py-2 border border-gray-300">
                   <input 
                     type="number" 
@@ -422,7 +474,7 @@
                 on:dragover={handleDragOver}
                 on:drop={(e) => handleDrop(e, section.id)}
               >
-                <td colspan="6" class="px-4 py-4 border border-gray-300 text-center text-sm text-gray-400 italic">
+                <td colspan="{$formData.rincianBiaya.pilihanVendor !== 'griya' ? '7' : '6'}" class="px-4 py-4 border border-gray-300 text-center text-sm text-gray-400 italic">
                   No items in this section. Drag products here.
                 </td>
               </tr>
@@ -433,7 +485,7 @@
           {#if $formData.rincianBiaya.perincianBiaya.unassignedProducts.length > 0}
             <tr class="bg-yellow-50">
               <td class="px-4 py-2 text-center text-sm border border-gray-300"></td>
-              <td class="px-4 py-2 text-sm font-semibold text-gray-800 border border-gray-300" colspan="5">
+              <td class="px-4 py-2 text-sm font-semibold text-gray-800 border border-gray-300" colspan="{$formData.rincianBiaya.pilihanVendor !== 'griya' ? '6' : '5'}">
                 <div class="flex items-center justify-between">
                   <span class="text-yellow-700">Unassigned Products (Drag to a section above)</span>
                 </div>
@@ -459,6 +511,18 @@
                     class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" 
                   />
                 </td>
+                {#if $formData.rincianBiaya.pilihanVendor !== 'griya'}
+                  <td class="px-4 py-2 border border-gray-300">
+                    <select 
+                      bind:value={item.tanggungJawabBayar}
+                      class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm"
+                    >
+                      <option value="">Pilih</option>
+                      <option value="Customer">Customer</option>
+                      <option value="Vendor">Vendor</option>
+                    </select>
+                  </td>
+                {/if}
                 <td class="px-4 py-2 border border-gray-300">
                   <input 
                     type="number" 
@@ -494,7 +558,7 @@
 
           <!-- Total Biaya -->
           <tr class="bg-rose-50 font-semibold">
-            <td class="px-4 py-3 border border-gray-300" colspan="4"></td>
+            <td class="px-4 py-3 border border-gray-300" colspan="{$formData.rincianBiaya.pilihanVendor !== 'griya' ? '5' : '4'}"></td>
             <td class="px-4 py-3 text-sm text-gray-800 border border-gray-300">Total Biaya</td>
             <td class="px-4 py-3 text-right text-sm text-gray-800 border border-gray-300">{formatCurrency(totalBiaya)}</td>
           </tr>
