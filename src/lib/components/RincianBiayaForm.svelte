@@ -1,6 +1,63 @@
 <script>
+	import { vendors } from '$lib/data/contactManagementData';
   import { formData } from '$lib/stores/formStore.js';
-  import {thirdParties} from '$lib/data/contactManagementData.js' 
+
+  let status = ['Terkonfirmasi', 'Dalam ']
+  let state = [
+    {
+      id:'terkonfirmasi',
+      displayName: 'Terkonfirmasi'
+    },
+
+    {
+      id:'d_konfirmasi',
+      displayName: 'Dalam Konfirmasi'
+    }
+  ]
+  
+  // Mock thirdParties data structure - replace with actual import from contactManagementData.js
+  const thirdParties = [
+    {
+      id: 1,
+      name: 'griya',
+      displayName: 'Griya Aristy',
+      packages: [
+        { id: 'g1', name: 'Paket Silver', price: 15000000 },
+        { id: 'g2', name: 'Paket Gold', price: 25000000 },
+        { id: 'g3', name: 'Paket Platinum', price: 35000000 }
+      ]
+    },
+    {
+      id: 2,
+      name: 'vendor_a',
+      displayName: 'Catering Mawar',
+      packages: [
+        { id: 'v1', name: 'Paket Ekonomis', price: 8000000 },
+        { id: 'v2', name: 'Paket Standard', price: 12000000 },
+        { id: 'v3', name: 'Paket Premium', price: 18000000 }
+      ]
+    },
+    {
+      id: 3,
+      name: 'vendor_b',
+      displayName: 'Dekorasi Melati',
+      packages: [
+        { id: 'd1', name: 'Paket Simple', price: 5000000 },
+        { id: 'd2', name: 'Paket Elegant', price: 10000000 },
+        { id: 'd3', name: 'Paket Luxury', price: 20000000 }
+      ]
+    },
+    {
+      id: 4,
+      name: 'vendor_c',
+      displayName: 'Fotografi Indah',
+      packages: [
+        { id: 'f1', name: 'Paket Basic', price: 3000000 },
+        { id: 'f2', name: 'Paket Pro', price: 6000000 },
+        { id: 'f3', name: 'Paket Ultimate', price: 12000000 }
+      ]
+    }
+  ];
 
   // Initialize rincian biaya data with new structure
   if (!$formData.rincianBiaya) {
@@ -25,9 +82,17 @@
         ],
         unassignedProducts: []
       },
-      perincianPembayaran: [
-        { tanggal: '', cashTransfer: '', jumlah: 0, buktiUrl: '' }
-      ]
+      perincianPembayaran: {
+        vendor: [
+          { tanggal: '', cashTransfer: '', jumlah: 0, buktiUrl: '' }
+        ],
+        customer: [
+          { tanggal: '', cashTransfer: '', jumlah: 0, buktiUrl: '' }
+        ],
+        griya: [
+          { tanggal: '', cashTransfer: '', jumlah: 0, buktiUrl: '' }
+        ]
+      }
     };
   }
 
@@ -53,6 +118,15 @@
     $formData.rincianBiaya.pilihanVendor = 'griya';
   }
 
+  // Ensure new payment structure exists
+  if (!$formData.rincianBiaya.perincianPembayaran.vendor) {
+    $formData.rincianBiaya.perincianPembayaran = {
+      vendor: [{ tanggal: '', cashTransfer: '', jumlah: 0, buktiUrl: '' }],
+      customer: [{ tanggal: '', cashTransfer: '', jumlah: 0, buktiUrl: '' }],
+      griya: $formData.rincianBiaya.perincianPembayaran || [{ tanggal: '', cashTransfer: '', jumlah: 0, buktiUrl: '' }]
+    };
+  }
+
   // Ensure tanggungJawabBayar field exists in hargaPaket
   if (!$formData.rincianBiaya.perincianBiaya.hargaPaket.tanggungJawabBayar) {
     $formData.rincianBiaya.perincianBiaya.hargaPaket.tanggungJawabBayar = '';
@@ -61,6 +135,27 @@
   let draggedProduct = null;
   let draggedProductIndex = null;
   let draggedFromSection = null;
+
+  // Get available packages based on selected vendor
+  $: availablePackages = thirdParties.find(v => v.name === $formData.rincianBiaya.pilihanVendor)?.packages || [];
+  
+  // Get selected package details
+  $: selectedPackage = availablePackages.find(p => p.id === $formData.rincianBiaya.pilihanPaket);
+
+  // Auto-update price when package changes
+  $: if (selectedPackage && $formData.rincianBiaya.perincianBiaya.hargaPaket) {
+    $formData.rincianBiaya.perincianBiaya.hargaPaket.harga = selectedPackage.price;
+  }
+
+  // Reset package selection when vendor changes
+  $: if ($formData.rincianBiaya.pilihanVendor) {
+    const currentPackages = thirdParties.find(v => v.name === $formData.rincianBiaya.pilihanVendor)?.packages || [];
+    const packageExists = currentPackages.some(p => p.id === $formData.rincianBiaya.pilihanPaket);
+    if (!packageExists) {
+      $formData.rincianBiaya.pilihanPaket = '';
+      $formData.rincianBiaya.perincianBiaya.hargaPaket.harga = 0;
+    }
+  }
 
   $: {
     // Auto calculate total for harga paket
@@ -116,7 +211,20 @@
 
   function calculateTotalPembayaran() {
     if (!$formData.rincianBiaya?.perincianPembayaran) return 0;
-    return $formData.rincianBiaya.perincianPembayaran.reduce((sum, item) => sum + (item.jumlah || 0), 0);
+    
+    let total = 0;
+    
+    if ($formData.rincianBiaya.pilihanVendor === 'griya') {
+      // For Griya, only count griya payments
+      total = $formData.rincianBiaya.perincianPembayaran.griya?.reduce((sum, item) => sum + (item.jumlah || 0), 0) || 0;
+    } else {
+      // For other vendors, count both vendor and customer payments
+      const vendorTotal = $formData.rincianBiaya.perincianPembayaran.vendor?.reduce((sum, item) => sum + (item.jumlah || 0), 0) || 0;
+      const customerTotal = $formData.rincianBiaya.perincianPembayaran.customer?.reduce((sum, item) => sum + (item.jumlah || 0), 0) || 0;
+      total = vendorTotal + customerTotal;
+    }
+    
+    return total;
   }
 
   function addSection() {
@@ -139,7 +247,6 @@
     
     const section = $formData.rincianBiaya.perincianBiaya.sections.find(s => s.id === sectionId);
     if (section && section.items.length > 0) {
-      // Move items to unassigned
       $formData.rincianBiaya.perincianBiaya.unassignedProducts = [
         ...$formData.rincianBiaya.perincianBiaya.unassignedProducts,
         ...section.items
@@ -195,65 +302,67 @@
     
     if (!draggedProduct) return;
 
-    // Remove from source
+    if (draggedFromSection === targetSectionId) return;
+
     if (draggedFromSection === null) {
-      // From unassigned
       $formData.rincianBiaya.perincianBiaya.unassignedProducts.splice(draggedProductIndex, 1);
+      $formData.rincianBiaya.perincianBiaya.unassignedProducts = [...$formData.rincianBiaya.perincianBiaya.unassignedProducts];
     } else {
-      // From a section
-      const sourceSectionIndex = $formData.rincianBiaya.perincianBiaya.sections.findIndex(s => s.id === draggedFromSection);
-      if (sourceSectionIndex !== -1) {
-        $formData.rincianBiaya.perincianBiaya.sections[sourceSectionIndex].items.splice(draggedProductIndex, 1);
+      const fromSectionIndex = $formData.rincianBiaya.perincianBiaya.sections.findIndex(s => s.id === draggedFromSection);
+      if (fromSectionIndex !== -1) {
+        $formData.rincianBiaya.perincianBiaya.sections[fromSectionIndex].items.splice(draggedProductIndex, 1);
       }
     }
 
-    // Add to target
-    if (targetSectionId === null) {
-      // To unassigned
-      $formData.rincianBiaya.perincianBiaya.unassignedProducts = [
-        ...$formData.rincianBiaya.perincianBiaya.unassignedProducts,
+    const toSectionIndex = $formData.rincianBiaya.perincianBiaya.sections.findIndex(s => s.id === targetSectionId);
+    if (toSectionIndex !== -1) {
+      $formData.rincianBiaya.perincianBiaya.sections[toSectionIndex].items = [
+        ...$formData.rincianBiaya.perincianBiaya.sections[toSectionIndex].items,
         draggedProduct
       ];
-    } else {
-      // To a section
-      const targetSectionIndex = $formData.rincianBiaya.perincianBiaya.sections.findIndex(s => s.id === targetSectionId);
-      if (targetSectionIndex !== -1) {
-        $formData.rincianBiaya.perincianBiaya.sections[targetSectionIndex].items = [
-          ...$formData.rincianBiaya.perincianBiaya.sections[targetSectionIndex].items,
-          draggedProduct
-        ];
-      }
     }
 
-    // Trigger reactivity
     $formData.rincianBiaya.perincianBiaya.sections = [...$formData.rincianBiaya.perincianBiaya.sections];
-    
-    // Reset drag state
+
     draggedProduct = null;
     draggedProductIndex = null;
     draggedFromSection = null;
   }
 
-  function addPembayaran() {
-    $formData.rincianBiaya.perincianPembayaran = [
-      ...$formData.rincianBiaya.perincianPembayaran,
-      { tanggal: '', cashTransfer: '', jumlah: 0, buktiUrl: '' }
-    ];
-  }
-
-  function removePembayaran(index) {
-    if ($formData.rincianBiaya.perincianPembayaran.length > 1) {
-      $formData.rincianBiaya.perincianPembayaran.splice(index, 1);
-      $formData.rincianBiaya.perincianPembayaran = [...$formData.rincianBiaya.perincianPembayaran];
+  function addPembayaran(type) {
+    if (type === 'griya') {
+      $formData.rincianBiaya.perincianPembayaran.griya = [
+        ...$formData.rincianBiaya.perincianPembayaran.griya,
+        { tanggal: '', cashTransfer: '', jumlah: 0, buktiUrl: '' }
+      ];
+    } else if (type === 'vendor') {
+      $formData.rincianBiaya.perincianPembayaran.vendor = [
+        ...$formData.rincianBiaya.perincianPembayaran.vendor,
+        { tanggal: '', cashTransfer: '', jumlah: 0, buktiUrl: '' }
+      ];
+    } else if (type === 'customer') {
+      $formData.rincianBiaya.perincianPembayaran.customer = [
+        ...$formData.rincianBiaya.perincianPembayaran.customer,
+        { tanggal: '', cashTransfer: '', jumlah: 0, buktiUrl: '' }
+      ];
     }
   }
 
-  function handleUploadBukti(index) {
-    // Simulate file upload - in real implementation, this would open file picker
-    alert(`Upload bukti pembayaran for row ${index + 1}`);
-    // You can implement actual file upload logic here
-    // For now, we'll just set a placeholder
-    $formData.rincianBiaya.perincianPembayaran[index].buktiUrl = 'uploaded-file-url';
+  function removePembayaran(type, idx) {
+    if (type === 'griya' && $formData.rincianBiaya.perincianPembayaran.griya.length > 1) {
+      $formData.rincianBiaya.perincianPembayaran.griya.splice(idx, 1);
+      $formData.rincianBiaya.perincianPembayaran.griya = [...$formData.rincianBiaya.perincianPembayaran.griya];
+    } else if (type === 'vendor' && $formData.rincianBiaya.perincianPembayaran.vendor.length > 1) {
+      $formData.rincianBiaya.perincianPembayaran.vendor.splice(idx, 1);
+      $formData.rincianBiaya.perincianPembayaran.vendor = [...$formData.rincianBiaya.perincianPembayaran.vendor];
+    } else if (type === 'customer' && $formData.rincianBiaya.perincianPembayaran.customer.length > 1) {
+      $formData.rincianBiaya.perincianPembayaran.customer.splice(idx, 1);
+      $formData.rincianBiaya.perincianPembayaran.customer = [...$formData.rincianBiaya.perincianPembayaran.customer];
+    }
+  }
+
+  function handleUploadBukti(type, idx) {
+    alert(`Upload bukti for ${type} payment #${idx + 1} - Feature to be implemented`);
   }
 
   function formatCurrency(value) {
@@ -267,7 +376,7 @@
 
 <div class="space-y-8">
   <!-- Header Information -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">Nama Pengantin</label>
       <input 
@@ -285,26 +394,33 @@
       />
     </div>
     <div>
-      <label for="vendors" class="block text-sm font-medium text-gray-700 mb-2">Pilihan Vendor</label>
-      <select bind:value={$formData.rincianBiaya.pilihanVendor} name="vendors" id="vendors" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none">
-        <option value="griya">Griya</option>
-        {#each thirdParties as tp}
-          <option value={tp.name}>{tp.name}</option>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Pilihan Vendor</label>
+      <select 
+        bind:value={$formData.rincianBiaya.pilihanVendor}
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
+      >
+        {#each thirdParties as vendor}
+          <option value={vendor.name}>{vendor.displayName}</option>
         {/each}
       </select>
     </div>
+    {#if $formData.rincianBiaya.pilihanVendor != 'griya'}
     <div>
-      <label for="paket" class="block text-sm font-medium text-gray-700 mb-2">Pilihan Paket</label>
-      <select bind:value={$formData.rincianBiaya.pilihanPaket} name="paket" id="paket" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none">
-        {#each thirdParties as tp}
-          {#if tp.name == $formData.rincianBiaya.pilihanVendor}
-            {#each tp.packages as pkg}
-              <option value={pkg.packageName}>{pkg.packageName}</option>
-            {/each}
-          {/if}
+      <label class="block text-sm font-medium text-gray-700 mb-2">Pilihan Paket</label>
+      <select 
+        bind:value={$formData.rincianBiaya.pilihanPaket}
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
+        disabled={availablePackages.length === 0}
+      >
+        <option value="">-- Pilih Paket --</option>
+        {#each availablePackages as package_item}
+          <option value={package_item.name}>
+            {package_item.name}
+          </option>
         {/each}
       </select>
     </div>
+    {/if}
   </div>
 
   <!-- Perincian Biaya Section -->
@@ -318,7 +434,7 @@
             <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300 w-8">No</th>
             <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300">Item</th>
             {#if $formData.rincianBiaya.pilihanVendor !== 'griya'}
-              <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-32">Tanggung Jawab Bayar</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-40">Tanggung Jawab Bayar</th>
             {/if}
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-24">Qty</th>
             <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-40">Harga</th>
@@ -331,12 +447,11 @@
           <tr>
             <td class="px-4 py-2 text-center text-sm border border-gray-300">1</td>
             <td class="px-4 py-2 text-sm font-medium text-gray-800 border border-gray-300">
-              {($formData.rincianBiaya.pilihanPaket === '' || $formData.rincianBiaya.pilihanVendor === 'griya')
-                ? 'Harga Paket'
-                : $formData.rincianBiaya.pilihanPaket}
+              Harga Paket
+              {#if selectedPackage}
+                <span class="text-xs text-gray-600 block">({selectedPackage.name})</span>
+              {/if}
             </td>
-
-
             {#if $formData.rincianBiaya.pilihanVendor !== 'griya'}
               <td class="px-4 py-2 border border-gray-300">
                 <select 
@@ -360,46 +475,49 @@
               <input 
                 type="number" 
                 bind:value={$formData.rincianBiaya.perincianBiaya.hargaPaket.harga}
-                class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm text-right" 
+                class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm text-right"
+                readonly={selectedPackage !== undefined}
               />
             </td>
             <td class="px-4 py-2 border border-gray-300 text-right text-sm font-medium">
               {formatCurrency($formData.rincianBiaya.perincianBiaya.hargaPaket.total)}
             </td>
-            <td class="px-4 py-2 border border-gray-300"></td>
+            <td class="px-4 py-2 text-center border border-gray-300"></td>
           </tr>
 
-          <!-- Dynamic Sections -->
+          <!-- Sections -->
           {#each $formData.rincianBiaya.perincianBiaya.sections as section, sectionIdx}
             <!-- Section Header -->
-            <tr 
-              class="bg-gray-100"
-              on:dragover={handleDragOver}
-              on:drop={(e) => handleDrop(e, section.id)}
-            >
-              <td class="px-4 py-2 text-center text-sm border border-gray-300">{sectionIdx + 2}</td>
-              <td class="px-4 py-2 text-sm font-semibold text-gray-800 border border-gray-300" colspan="{$formData.rincianBiaya.pilihanVendor !== 'griya' ? '5' : '4'}">
-                <div class="flex items-center justify-between">
+            <tr class="bg-gray-200">
+              <td colspan="{$formData.rincianBiaya.pilihanVendor !== 'griya' ? '7' : '6'}" class="px-4 py-2 border border-gray-300">
+                <div class="flex justify-between items-center">
                   <input 
                     type="text" 
                     bind:value={section.name}
-                    class="font-semibold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-rose-300 rounded px-2 py-1" 
+                    class="font-semibold bg-transparent border-none focus:outline-none"
                   />
-                  <span class="text-xs text-gray-500 italic">Drop products here</span>
-                </div>
-              </td>
-              <td class="px-4 py-2 text-center border border-gray-300">
-                {#if $formData.rincianBiaya.perincianBiaya.sections.length > 1}
                   <button 
                     type="button" 
-                    on:click={() => removeSection(section.id)} 
-                    class="p-1 text-red-500 hover:text-red-700 transition duration-200"
-                    title="Remove Section"
+                    on:click={() => removeSection(section.id)}
+                    class="text-red-600 hover:underline text-sm"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
+                    Remove Section
                   </button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Drop Zone -->
+            <tr 
+              on:dragover={handleDragOver}
+              on:drop={(e) => handleDrop(e, section.id)}
+              class="bg-gray-50"
+            >
+              <td colspan="{$formData.rincianBiaya.pilihanVendor !== 'griya' ? '7' : '6'}" class="px-4 py-3 text-center text-sm text-gray-500 border border-gray-300 italic">
+                {#if section.items.length === 0}
+                  Drop items here
+                {:else}
+                  {section.items.length} item(s)
                 {/if}
               </td>
             </tr>
@@ -409,18 +527,13 @@
               <tr 
                 draggable="true"
                 on:dragstart={(e) => handleDragStart(e, item, itemIdx, section.id)}
-                class="cursor-move hover:bg-gray-50"
+                class="hover:bg-gray-50"
               >
-                <td class="px-4 py-2 text-center text-sm border border-gray-300">
-                  <svg class="w-4 h-4 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
-                  </svg>
-                </td>
+                <td class="px-4 py-2 text-center text-sm border border-gray-300">{sectionIdx + 2 + itemIdx}</td>
                 <td class="px-4 py-2 border border-gray-300">
                   <input 
                     type="text" 
                     bind:value={item.item}
-                    placeholder="Nama item..."
                     class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" 
                   />
                 </td>
@@ -467,47 +580,26 @@
                 </td>
               </tr>
             {/each}
-
-            <!-- Empty section placeholder -->
-            {#if section.items.length === 0}
-              <tr 
-                on:dragover={handleDragOver}
-                on:drop={(e) => handleDrop(e, section.id)}
-              >
-                <td colspan="{$formData.rincianBiaya.pilihanVendor !== 'griya' ? '7' : '6'}" class="px-4 py-4 border border-gray-300 text-center text-sm text-gray-400 italic">
-                  No items in this section. Drag products here.
-                </td>
-              </tr>
-            {/if}
           {/each}
 
-          <!-- Unassigned Products Section -->
+          <!-- Unassigned Products -->
           {#if $formData.rincianBiaya.perincianBiaya.unassignedProducts.length > 0}
-            <tr class="bg-yellow-50">
-              <td class="px-4 py-2 text-center text-sm border border-gray-300"></td>
-              <td class="px-4 py-2 text-sm font-semibold text-gray-800 border border-gray-300" colspan="{$formData.rincianBiaya.pilihanVendor !== 'griya' ? '6' : '5'}">
-                <div class="flex items-center justify-between">
-                  <span class="text-yellow-700">Unassigned Products (Drag to a section above)</span>
-                </div>
+            <tr class="bg-gray-200">
+              <td colspan="{$formData.rincianBiaya.pilihanVendor !== 'griya' ? '7' : '6'}" class="px-4 py-2 border border-gray-300">
+                <span class="font-semibold">Unassigned Products</span>
               </td>
             </tr>
-
             {#each $formData.rincianBiaya.perincianBiaya.unassignedProducts as item, itemIdx}
               <tr 
                 draggable="true"
                 on:dragstart={(e) => handleDragStart(e, item, itemIdx, null)}
-                class="cursor-move hover:bg-yellow-50 bg-yellow-25"
+                class="hover:bg-gray-50"
               >
-                <td class="px-4 py-2 text-center text-sm border border-gray-300">
-                  <svg class="w-4 h-4 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
-                  </svg>
-                </td>
+                <td class="px-4 py-2 text-center text-sm border border-gray-300">-</td>
                 <td class="px-4 py-2 border border-gray-300">
                   <input 
                     type="text" 
                     bind:value={item.item}
-                    placeholder="Nama item..."
                     class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" 
                   />
                 </td>
@@ -558,9 +650,10 @@
 
           <!-- Total Biaya -->
           <tr class="bg-rose-50 font-semibold">
-            <td class="px-4 py-3 border border-gray-300" colspan="{$formData.rincianBiaya.pilihanVendor !== 'griya' ? '5' : '4'}"></td>
+            <td class="px-4 py-3 border border-gray-300" colspan="{$formData.rincianBiaya.pilihanVendor !== 'griya' ? '4' : '3'}"></td>
             <td class="px-4 py-3 text-sm text-gray-800 border border-gray-300">Total Biaya</td>
             <td class="px-4 py-3 text-right text-sm text-gray-800 border border-gray-300">{formatCurrency(totalBiaya)}</td>
+            <td class="px-4 py-3 border border-gray-300"></td>
           </tr>
         </tbody>
       </table>
@@ -595,88 +688,293 @@
   <div class="border border-gray-300 rounded-lg p-6">
     <h3 class="text-xl font-semibold text-gray-800 mb-6 text-center bg-gray-100 py-2 -mx-6 -mt-6 rounded-t-lg">Perincian Pembayaran</h3>
 
-    <div class="flex items-center justify-end mb-4">
-      <button type="button" on:click={addPembayaran} class="px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white text-sm rounded transition duration-200">
-        Tambah Pembayaran
-      </button>
-    </div>
+    {#if $formData.rincianBiaya.pilihanVendor === 'griya'}
+      <!-- Single table for Griya -->
+      <div class="flex items-center justify-end mb-4">
+        <button type="button" on:click={() => addPembayaran('griya')} class="px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white text-sm rounded transition duration-200">
+          Tambah Pembayaran
+        </button>
+      </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="bg-gray-50">
-            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300 w-8">No</th>
-            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Tanggal Pembayaran</th>
-            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Cash/Transfer</th>
-            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Jumlah</th>
-            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-48">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each $formData.rincianBiaya.perincianPembayaran as pembayaran, idx}
-            <tr>
-              <td class="px-4 py-2 text-center text-sm border border-gray-300">{idx + 1}</td>
-              <td class="px-4 py-2 border border-gray-300">
-                <input 
-                  type="date" 
-                  bind:value={pembayaran.tanggal}
-                  class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" 
-                />
-              </td>
-              <td class="px-4 py-2 border border-gray-300">
-                <select 
-                  bind:value={pembayaran.cashTransfer}
-                  class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm"
-                >
-                  <option value="">Pilih</option>
-                  <option value="Cash">Cash</option>
-                  <option value="Transfer">Transfer</option>
-                </select>
-              </td>
-              <td class="px-4 py-2 border border-gray-300">
-                <input 
-                  type="number" 
-                  bind:value={pembayaran.jumlah}
-                  class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm text-right" 
-                />
-              </td>
-              <td class="px-4 py-2 text-center border border-gray-300">
-                <div class="flex items-center justify-center gap-3">
-                  <button 
-                    type="button" 
-                    on:click={() => handleUploadBukti(idx)} 
-                    class="p-1 text-blue-500 hover:text-blue-700 transition duration-200"
-                    title="Upload Bukti"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                    </svg>
-                  </button>
-                  <span class="text-gray-300">|</span>
-                  <button 
-                    type="button" 
-                    on:click={() => removePembayaran(idx)} 
-                    class="p-1 text-red-500 hover:text-red-700 transition duration-200"
-                    title="Hapus"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                  </button>
-                </div>
-              </td>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300 w-8">No</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Tanggal Pembayaran</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Cash/Transfer</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Jumlah</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-48">Aksi</th>
             </tr>
-          {/each}
+          </thead>
+          <tbody>
+            {#each $formData.rincianBiaya.perincianPembayaran.griya as pembayaran, idx}
+              <tr>
+                <td class="px-4 py-2 text-center text-sm border border-gray-300">{idx + 1}</td>
+                <td class="px-4 py-2 border border-gray-300">
+                  <input 
+                    type="date" 
+                    bind:value={pembayaran.tanggal}
+                    class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" 
+                  />
+                </td>
+                <td class="px-4 py-2 border border-gray-300">
+                  <select 
+                    bind:value={pembayaran.cashTransfer}
+                    class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm"
+                  >
+                    <option value="">Pilih</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Transfer">Transfer</option>
+                  </select>
+                </td>
+                <td class="px-4 py-2 border border-gray-300">
+                  <input 
+                    type="number" 
+                    bind:value={pembayaran.jumlah}
+                    class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm text-right" 
+                  />
+                </td>
+                <td class="px-4 py-2 text-center border border-gray-300">
+                  <div class="flex items-center justify-center gap-3">
+                    <button 
+                      type="button" 
+                      on:click={() => handleUploadBukti('griya', idx)} 
+                      class="p-1 text-blue-500 hover:text-blue-700 transition duration-200"
+                      title="Upload Bukti"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                      </svg>
+                    </button>
+                    <span class="text-gray-300">|</span>
+                    <button 
+                      type="button" 
+                      on:click={() => removePembayaran('griya', idx)} 
+                      class="p-1 text-red-500 hover:text-red-700 transition duration-200"
+                      title="Hapus"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            {/each}
 
-          <!-- Total Pembayaran -->
-          <tr class="bg-blue-50 font-semibold">
-            <td class="px-4 py-3 border border-gray-300" colspan="3"></td>
-            <td class="px-4 py-3 text-sm text-gray-800 border border-gray-300">Total Pembayaran</td>
-            <td class="px-4 py-3 text-right text-sm text-gray-800 border border-gray-300">{formatCurrency(totalPembayaran)}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+            <!-- Total Pembayaran -->
+            <tr class="bg-blue-50 font-semibold">
+              <td class="px-4 py-3 border border-gray-300" colspan="3"></td>
+              <td class="px-4 py-3 text-sm text-gray-800 border border-gray-300">Total Pembayaran</td>
+              <td class="px-4 py-3 text-right text-sm text-gray-800 border border-gray-300">{formatCurrency(totalPembayaran)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    {:else}
+      <!-- Two tables (Vendor and Customer) in the same section -->
+      
+      <!-- Vendor Table -->
+      <div class="mb-6">
+        <h4 class="text-lg font-semibold text-gray-700 mb-4">Vendor</h4>
+        
+        <div class="flex items-center justify-end mb-4">
+          <button type="button" on:click={() => addPembayaran('vendor')} class="px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white text-sm rounded transition duration-200">
+            Tambah Pembayaran Vendor
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr class="bg-gray-50">
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300 w-8">No</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Tanggal Pembayaran</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Cash/Transfer</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Jumlah</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Status</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-48">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each $formData.rincianBiaya.perincianPembayaran.vendor as pembayaran, idx}
+                <tr>
+                  <td class="px-4 py-2 text-center text-sm border border-gray-300">{idx + 1}</td>
+                  <td class="px-4 py-2 border border-gray-300">
+                    <input 
+                      type="date" 
+                      bind:value={pembayaran.tanggal}
+                      class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" 
+                    />
+                  </td>
+                  <td class="px-4 py-2 border border-gray-300">
+                    <select 
+                      bind:value={pembayaran.cashTransfer}
+                      class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm"
+                    >
+                      <option value="">Pilih</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Transfer">Transfer</option>
+                    </select>
+                  </td>
+                  <td class="px-4 py-2 border border-gray-300">
+                    <input 
+                      type="number" 
+                      bind:value={pembayaran.jumlah}
+                      class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm text-right" 
+                    />
+                  </td>
+                  <td class="px-4 py-2 text-center border-gray-300 flex justify-center items-center">
+                    <div class="flex items-center gap-2">
+                      <span class="px-3 py-1 text-xs font-medium rounded-full {
+                        state[0].id === 'terkonfirmasi' ? 'bg-green-100 text-green-800' :
+                        state[0].id === 'd_konfirmasi' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }">
+                        {state[0].displayName}
+                      </span>
+                    </div>
+                  </td>
+                  <td class="px-4 py-2 text-center border border-gray-300">
+                    <div class="flex items-center justify-center gap-3">
+                      <button 
+                        type="button" 
+                        on:click={() => handleUploadBukti('vendor', idx)} 
+                        class="p-1 text-blue-500 hover:text-blue-700 transition duration-200"
+                        title="Upload Bukti"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                      </button>
+                      <span class="text-gray-300">|</span>
+                      <button 
+                        type="button" 
+                        on:click={() => removePembayaran('vendor', idx)} 
+                        class="p-1 text-red-500 hover:text-red-700 transition duration-200"
+                        title="Hapus"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              {/each}
+
+              <tr class="bg-blue-50 font-semibold">
+                <td class="px-4 py-3 border border-gray-300" colspan="3"></td>
+                <td class="px-4 py-3 text-sm text-gray-800 border border-gray-300">Total Pembayaran</td>
+                <td class="px-4 py-3 text-right text-sm text-gray-800 border border-gray-300" colspan="2">{formatCurrency(totalPembayaran)}</td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Customer Table -->
+      <div>
+        <h4 class="text-lg font-semibold text-gray-700 mb-4">Customer</h4>
+        
+        <div class="flex items-center justify-end mb-4">
+          <button type="button" on:click={() => addPembayaran('customer')} class="px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white text-sm rounded transition duration-200">
+            Tambah Pembayaran Customer
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr class="bg-gray-50">
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800 border border-gray-300 w-8">No</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Tanggal Pembayaran</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Cash/Transfer</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Jumlah</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300">Status</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-800 border border-gray-300 w-48">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each $formData.rincianBiaya.perincianPembayaran.customer as pembayaran, idx}
+                <tr>
+                  <td class="px-4 py-2 text-center text-sm border border-gray-300">{idx + 1}</td>
+                  <td class="px-4 py-2 border border-gray-300">
+                    <input 
+                      type="date" 
+                      bind:value={pembayaran.tanggal}
+                      class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" 
+                    />
+                  </td>
+                  <td class="px-4 py-2 border border-gray-300">
+                    <select 
+                      bind:value={pembayaran.cashTransfer}
+                      class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm"
+                    >
+                      <option value="">Pilih</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Transfer">Transfer</option>
+                    </select>
+                  </td>
+                  <td class="px-4 py-2 border border-gray-300">
+                    <input 
+                      type="number" 
+                      bind:value={pembayaran.jumlah}
+                      class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm text-right" 
+                    />
+                  </td>
+                  <td class="px-4 py-2 text-center border-gray-300 flex justify-center items-center">
+                    <div class="flex items-center gap-2">
+                      <span class="px-3 py-1 text-xs font-medium rounded-full {
+                        state[0].id === 'terkonfirmasi' ? 'bg-green-100 text-green-800' :
+                        state[0].id === 'd_konfirmasi' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }">
+                        {state[0].displayName}
+                      </span>
+                    </div>
+                  </td>
+                  <td class="px-4 py-2 text-center border border-gray-300">
+                    <div class="flex items-center justify-center gap-3">
+                      <button 
+                        type="button" 
+                        on:click={() => handleUploadBukti('customer', idx)} 
+                        class="p-1 text-blue-500 hover:text-blue-700 transition duration-200"
+                        title="Upload Bukti"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                      </button>
+                      <span class="text-gray-300">|</span>
+                      <button 
+                        type="button" 
+                        on:click={() => removePembayaran('customer', idx)} 
+                        class="p-1 text-red-500 hover:text-red-700 transition duration-200"
+                        title="Hapus"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              {/each}
+
+              <!-- Total Pembayaran -->
+              <tr class="bg-blue-50 font-semibold">
+                <td class="px-4 py-3 border border-gray-300" colspan="3"></td>
+                <td class="px-4 py-3 text-sm text-gray-800 border border-gray-300">Total Pembayaran</td>
+                <td class="px-4 py-3 text-right text-sm text-gray-800 border border-gray-300" colspan="2">{formatCurrency(totalPembayaran)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {/if}
   </div>
 
   <!-- Summary Section -->
@@ -706,7 +1004,9 @@
       </div>
     </div>
     <div class="text-center">
-      <p class="text-sm font-medium text-gray-700 mb-16">Griya Aristy</p>
+      <p class="text-sm font-medium text-gray-700 mb-16">
+        {thirdParties.find(v => v.name === $formData.rincianBiaya.pilihanVendor)?.displayName || 'Vendor'}
+      </p>
       <div class="border-t-2 border-gray-400 pt-2 mx-12">
         <p class="text-sm text-gray-600">( _______________ )</p>
       </div>
