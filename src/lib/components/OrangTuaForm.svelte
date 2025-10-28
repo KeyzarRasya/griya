@@ -5,14 +5,16 @@
   import { formData } from '$lib/stores/formStore.js';
   import { dressColors } from '$lib/data/mockData.js';
 
+  export let eventTypes = [];
+
   // Initialize orang tua data if not exists
   if (!$formData.orangTua) {
     $formData.orangTua = {
       orangTuaPengantin: {
-        cpwBapak: { nama: '', akad: '', resepsi: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' },
-        ibu: { nama: '', akad: '', resepsi: '', ukuranBusana: '', ukuranSelop: '', keterangan: '', ukuranKepala: '' },
-        cppBapak: { nama: '', akad: '', resepsi: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' },
-        ibuCpp: { nama: '', akad: '', resepsi: '', ukuranBusana: '', ukuranSelop: '', keterangan: '', ukuranKepala: '' }
+        cpwBapak: { nama: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' },
+        ibu: { nama: '', ukuranBusana: '', ukuranSelop: '', keterangan: '', ukuranKepala: '' },
+        cppBapak: { nama: '', ukuranBusana: '', ukuranSelop: '', ukuranKepala: '', keterangan: '' },
+        ibuCpp: { nama: '', ukuranBusana: '', ukuranSelop: '', keterangan: '', ukuranKepala: '' }
       },
       amongTamu: {
         pria: [
@@ -23,9 +25,23 @@
         ]
       },
       penerimaBukuTamu: [
-        { nama: '', warnaKode: '', ukuranBusana: '', ukuranHijabHairdo: '', keterangan: '', isMUA: falses }
+        { nama: '', warnaKode: '', ukuranBusana: '', ukuranHijabHairdo: '', keterangan: '', isMUA: false }
       ]
     };
+  }
+
+  // Initialize dynamic event type fields for each parent
+  $: {
+    if (eventTypes.length > 0) {
+      ['cpwBapak', 'ibu', 'cppBapak', 'ibuCpp'].forEach(parent => {
+        eventTypes.forEach(eventType => {
+          const key = eventType.toLowerCase();
+          if (!$formData.orangTua.orangTuaPengantin[parent][key]) {
+            $formData.orangTua.orangTuaPengantin[parent][key] = '';
+          }
+        });
+      });
+    }
   }
 
   function addAmongPria() {
@@ -111,14 +127,12 @@
             </td>
             <td class="px-4 py-2 border border-gray-300">
               <div class="space-y-1">
-                <div class="flex items-center gap-2">
-                  <span class="text-sm whitespace-nowrap">Akad:</span>
-                  <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.cpwBapak.akad} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-sm whitespace-nowrap">Resepsi:</span>
-                  <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.cpwBapak.resepsi} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
-                </div>
+                {#each eventTypes as eventType}
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm whitespace-nowrap">{eventType}:</span>
+                    <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.cpwBapak[eventType.toLowerCase()]} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
+                  </div>
+                {/each}
               </div>
             </td>
             <td class="px-4 py-2 border border-gray-300">
@@ -135,8 +149,6 @@
             </td>
           </tr>
           
-          
-
           <!-- Ibu -->
           <tr>
             <td class="px-4 py-3 text-sm text-gray-700 border border-gray-300">
@@ -147,14 +159,12 @@
             </td>
             <td class="px-4 py-2 border border-gray-300">
               <div class="space-y-1">
-                <div class="flex items-center gap-2">
-                  <span class="text-sm whitespace-nowrap">Akad:</span>
-                  <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.ibu.akad} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-sm whitespace-nowrap">Resepsi:</span>
-                  <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.ibu.resepsi} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
-                </div>
+                {#each eventTypes as eventType}
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm whitespace-nowrap">{eventType}:</span>
+                    <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.ibu[eventType.toLowerCase()]} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
+                  </div>
+                {/each}
               </div>
             </td>
             <td class="px-4 py-2 border border-gray-300">
@@ -184,14 +194,12 @@
             </td>
             <td class="px-4 py-2 border border-gray-300">
               <div class="space-y-1">
-                <div class="flex items-center gap-2">
-                  <span class="text-sm whitespace-nowrap">Akad:</span>
-                  <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.cppBapak.akad} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-sm whitespace-nowrap">Resepsi:</span>
-                  <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.cppBapak.resepsi} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
-                </div>
+                {#each eventTypes as eventType}
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm whitespace-nowrap">{eventType}:</span>
+                    <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.cppBapak[eventType.toLowerCase()]} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
+                  </div>
+                {/each}
               </div>
             </td>
             <td class="px-4 py-2 border border-gray-300">
@@ -207,7 +215,7 @@
               <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.cppBapak.keterangan} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
             </td>
           </tr>
-
+          
           <!-- Ibu CPP -->
           <tr>
             <td class="px-4 py-3 text-sm text-gray-700 border border-gray-300">
@@ -218,14 +226,12 @@
             </td>
             <td class="px-4 py-2 border border-gray-300">
               <div class="space-y-1">
-                <div class="flex items-center gap-2">
-                  <span class="text-sm whitespace-nowrap">Akad:</span>
-                  <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.ibuCpp.akad} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-sm whitespace-nowrap">Resepsi:</span>
-                  <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.ibuCpp.resepsi} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
-                </div>
+                {#each eventTypes as eventType}
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm whitespace-nowrap">{eventType}:</span>
+                    <input type="text" bind:value={$formData.orangTua.orangTuaPengantin.ibuCpp[eventType.toLowerCase()]} class="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
+                  </div>
+                {/each}
               </div>
             </td>
             <td class="px-4 py-2 border border-gray-300">
@@ -371,13 +377,13 @@
                 </td>
                 <td class="px-4 py-2 border border-gray-300">
                   <select bind:value={wanita.ukuranHijabHairdo} name="hijabhairdo" id="" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm">
-                      <option value="">Pilih --------------------------</option>
+                      <option value="">Pilih</option>
                       <option value="hijab">Hijab</option>
                       <option value="hairdo">Hairdo</option>
                   </select>
                 </td>
-                <td class="px-4 py-2 border border-gray-300">
-                  <input type="checkbox" bind:checked={wanita.isMUA} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
+                <td class="px-4 py-2 text-center border border-gray-300">
+                  <input type="checkbox" bind:checked={wanita.isMUA} class="w-4 h-4 text-rose-400 border-gray-300 rounded focus:ring-rose-300" />
                 </td>
                 <td class="px-4 py-2 border border-gray-300">
                   <textarea bind:value={wanita.keterangan} rows="2" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm resize-none"></textarea>
@@ -441,24 +447,24 @@
                 <textarea bind:value={penerima.warnaKode} rows="2" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm resize-none"></textarea>
               </td>
               <td class="px-4 py-2 border border-gray-300">
-                  <select bind:value={penerima.ukuranBusana} name="hijabhairdo" id="" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm">
-                      <option value="">Pilih</option>
-                      <option value="s">S</option>
-                      <option value="m">M</option>
-                      <option value="l">L</option>
-                      <option value="xl">XL</option>
-                  </select>
-                </td>
+                <select bind:value={penerima.ukuranBusana} name="hijabhairdo" id="" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm">
+                    <option value="">Pilih</option>
+                    <option value="s">S</option>
+                    <option value="m">M</option>
+                    <option value="l">L</option>
+                    <option value="xl">XL</option>
+                </select>
+              </td>
               <td class="px-4 py-2 border border-gray-300">
                 <select bind:value={penerima.ukuranHijabHairdo} name="hijabhairdo" id="" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm">
-                    <option value="">Pilih -------------</option>
+                    <option value="">Pilih</option>
                     <option value="hijab">Hijab</option>
                     <option value="hairdo">Hairdo</option>
                 </select>
               </td>
-              <td class="px-4 py-2 border border-gray-300">
-                  <input type="checkbox" bind:checked={penerima.isMUA} class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm" />
-                </td>
+              <td class="px-4 py-2 text-center border border-gray-300">
+                <input type="checkbox" bind:checked={penerima.isMUA} class="w-4 h-4 text-rose-400 border-gray-300 rounded focus:ring-rose-300" />
+              </td>
               <td class="px-4 py-2 border border-gray-300">
                 <textarea bind:value={penerima.keterangan} rows="2" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm resize-none"></textarea>
               </td>
