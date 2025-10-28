@@ -1,53 +1,178 @@
 <script>
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
-  import { formData, resetForm } from '$lib/stores/formStore.js';
-  import { getFormById } from '$lib/data/fittingFormsData.js';
-  import PengantinForm from '$lib/components/PengantinForm.svelte';
-  import OrangTuaForm from '$lib/components/OrangTuaForm.svelte';
-  import RincianBiayaForm from '$lib/components/RincianBiayaForm.svelte';
+  import { onMount } from 'svelte';
 
-  let activeTab = 'pengantin';
-  let currentFormId = $page.params.id;
-  let isNewForm = currentFormId === 'new';
-  let currentFormData = null;
+  let contactId = $page.params.id;
+  let isNewContact = contactId === 'new';
 
-  // Load form data if editing existing form
-  if (!isNewForm) {
-    currentFormData = getFormById(currentFormId);
-    if (!currentFormData) {
-      // Form not found, redirect to list
-      goto('/fitting');
-    }
-  }
+  // Event options for multiselect
+  const eventOptions = ['Akad', 'Resepsi', 'Siraman'];
 
-  function submitForm() {
-    console.log('Form submitted:', JSON.stringify($formData, null, 2));
-    alert(`Form berhasil disimpan! Form ID: ${currentFormId}`);
-    // In real app, you would save to database here
-    goto('/fitting');
-  }
+  // Mock contact data
+  let contact = {
+    id: '1',
+    name: 'Juni & Hermansyah',
+    company: 'My Company',
+    phone: '08999415758',
+    salesperson: 'Administrator',
+    stage: 'new',
+    events: [
+      { 
+        id: 'e1', 
+        eventTypes: ['Akad', 'Resepsi'],
+        date: '2025-12-15', 
+        status: 'Active',
+        location: 'Jakarta',
+        notes: 'VIP Package'
+      },
+      { 
+        id: 'e2', 
+        eventTypes: ['Siraman'],
+        date: '2025-12-20', 
+        status: 'Active',
+        location: 'Bandung',
+        notes: 'Standard Package'
+      }
+    ]
+  };
 
-  function handleReset() {
-    if (confirm('Apakah Anda yakin ingin mereset form?')) {
-      resetForm();
-      alert('Form telah direset');
-    }
-  }
+  // Form for new contact
+  let newContact = {
+    name: '',
+    company: '',
+    phone: '',
+    salesperson: 'Administrator'
+  };
+
+  // State for adding new event
+  let isAddingEvent = false;
+  let newEvent = {
+    eventTypes: [],
+    date: '',
+    location: '',
+    notes: ''
+  };
+  let showEventDropdown = false;
 
   function goBack() {
     goto('/fitting');
   }
+
+  function openEventDetails(event) {
+    const eventTypesParam = event.eventTypes.join(',');
+    goto(`/fitting/${contactId}/event/${event.id}?eventTypes=${eventTypesParam}`);
+  }
+
+  function deleteEvent(eventId) {
+    if (confirm('Apakah Anda yakin ingin menghapus event ini?')) {
+      contact.events = contact.events.filter(e => e.id !== eventId);
+      alert('Event berhasil dihapus');
+    }
+  }
+
+  function startAddingEvent() {
+    isAddingEvent = true;
+    newEvent = {
+      eventTypes: [],
+      date: '',
+      location: '',
+      notes: ''
+    };
+  }
+
+  function cancelAddingEvent() {
+    isAddingEvent = false;
+    newEvent = {
+      eventTypes: [],
+      date: '',
+      location: '',
+      notes: ''
+    };
+    showEventDropdown = false;
+  }
+
+  function toggleEventType(eventType, event) {
+    event.stopPropagation();
+    const index = newEvent.eventTypes.indexOf(eventType);
+    if (index > -1) {
+      newEvent.eventTypes = newEvent.eventTypes.filter(e => e !== eventType);
+    } else {
+      newEvent.eventTypes = [...newEvent.eventTypes, eventType];
+    }
+  }
+
+  function saveNewEvent() {
+    if (newEvent.eventTypes.length === 0) {
+      alert('Pilih minimal satu tipe event');
+      return;
+    }
+    if (!newEvent.date) {
+      alert('Tanggal event harus diisi');
+      return;
+    }
+
+    const eventId = 'e' + Date.now();
+    contact.events = [...contact.events, {
+      id: eventId,
+      eventTypes: [...newEvent.eventTypes],
+      date: newEvent.date,
+      status: 'Active',
+      location: newEvent.location || '-',
+      notes: newEvent.notes || '-'
+    }];
+
+    cancelAddingEvent();
+    alert('Event berhasil ditambahkan!');
+  }
+
+  function formatDate(dateString) {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('id-ID', options);
+  }
+
+  function getInitials(name) {
+    const names = name.split(' ');
+    if (names.length >= 2) {
+      return names[0][0] + names[names.length - 1][0];
+    }
+    return name.substring(0, 2);
+  }
+
+  function saveNewContact() {
+    if (!newContact.name || !newContact.phone) {
+      alert('Mohon isi nama dan nomor telepon');
+      return;
+    }
+    
+    console.log('Saving new contact:', newContact);
+    alert('Contact baru berhasil disimpan!');
+    goto('/fitting');
+  }
+
+  function handleClickOutside(event) {
+    const dropdown = document.querySelector('.event-dropdown-container');
+    if (dropdown && !dropdown.contains(event.target)) {
+      showEventDropdown = false;
+    }
+  }
+
+  onMount(() => {
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  });
 </script>
 
 <div class="bg-white rounded-lg shadow-md p-8 border-t-4 border-rose-300">
   <!-- Header with Back Button -->
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex items-center justify-between mb-8">
     <div class="flex items-center gap-4">
       <button
         on:click={goBack}
         class="p-2 hover:bg-gray-100 rounded-lg transition duration-200"
-        title="Kembali ke daftar"
+        title="Kembali ke kanban"
       >
         <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -55,89 +180,312 @@
       </button>
       <div>
         <h2 class="text-3xl font-serif text-gray-800">
-          {isNewForm ? 'Fitting Form Baru' : `Edit Fitting Form #${currentFormId}`}
+          {isNewContact ? 'Contact Baru' : contact.name}
         </h2>
         <p class="text-gray-600 mt-1">
-          {#if isNewForm}
-            Buat fitting form baru untuk pengantin
-          {:else if currentFormData}
-            Form untuk: {currentFormData.namaPengantin}
-          {/if}
+          {isNewContact ? 'Tambah contact baru' : 'Detail contact dan list of events'}
         </p>
       </div>
     </div>
+  </div>
 
-    {#if !isNewForm && currentFormData}
-      <div class="flex items-center gap-2">
-        <span class="px-3 py-1 text-xs font-medium rounded-full {
-          currentFormData.status === 'Completed' ? 'bg-green-100 text-green-800' :
-          currentFormData.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-          'bg-gray-100 text-gray-800'
-        }">
-          {currentFormData.status}
-        </span>
+  {#if isNewContact}
+    <!-- New Contact Form -->
+    <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+      <h3 class="text-xl font-semibold text-gray-800 mb-6">Informasi Contact</h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Nama <span class="text-red-500">*</span>
+          </label>
+          <input
+            bind:value={newContact.name}
+            type="text"
+            placeholder="Nama pengantin"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Company
+          </label>
+          <input
+            bind:value={newContact.company}
+            type="text"
+            placeholder="Nama perusahaan"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Phone <span class="text-red-500">*</span>
+          </label>
+          <input
+            bind:value={newContact.phone}
+            type="tel"
+            placeholder="08xxx"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Salesperson
+          </label>
+          <select 
+            bind:value={newContact.salesperson}
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
+          >
+            <option value="Administrator">Administrator</option>
+            <option value="Marketing A">Marketing A</option>
+            <option value="Marketing B">Marketing B</option>
+          </select>
+        </div>
       </div>
-    {/if}
-  </div>
 
-  <!-- Tabs -->
-  <div class="border-b border-gray-200 mb-8">
-    <nav class="flex space-x-8">
-      <button
-        on:click={() => activeTab = 'pengantin'}
-        class="py-4 px-1 border-b-2 font-medium text-sm {activeTab === 'pengantin' ? 'border-rose-400 text-rose-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} transition duration-200"
-      >
-        Pengantin
-      </button>
-      <button
-        on:click={() => activeTab = 'orangtua'}
-        class="py-4 px-1 border-b-2 font-medium text-sm {activeTab === 'orangtua' ? 'border-rose-400 text-rose-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} transition duration-200"
-      >
-        Lainnya
-      </button>
-      <button
-        on:click={() => activeTab = 'biaya'}
-        class="py-4 px-1 border-b-2 font-medium text-sm {activeTab === 'biaya' ? 'border-rose-400 text-rose-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} transition duration-200"
-      >
-        Rincian Biaya
-      </button>
-    </nav>
-  </div>
-
-  <!-- Tab Content -->
-  {#if activeTab === 'pengantin'}
-    <form on:submit|preventDefault={submitForm}>
-      <PengantinForm />
-
-      <!-- Form Actions -->
-      <div class="flex gap-4 mt-8 pt-6 border-t border-gray-200">
-        <button 
-          type="submit" 
-          class="flex-1 bg-rose-400 hover:bg-rose-500 text-white font-medium py-3 px-6 rounded-lg transition duration-200"
+      <div class="mt-8 flex items-center gap-4">
+        <button
+          on:click={saveNewContact}
+          class="bg-rose-400 hover:bg-rose-500 text-white font-medium py-3 px-8 rounded-lg transition duration-200"
         >
-          {isNewForm ? 'Simpan Form Baru' : 'Update Form'}
+          Simpan Contact
         </button>
-        <button 
-          type="button" 
-          on:click={handleReset} 
-          class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition duration-200"
-        >
-          Reset
-        </button>
-        <button 
-          type="button" 
-          on:click={goBack} 
-          class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition duration-200"
+        <button
+          on:click={goBack}
+          class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-8 rounded-lg transition duration-200"
         >
           Batal
         </button>
       </div>
-    </form>
+    </div>
+  {:else}
+    <!-- Contact Details -->
+    <div class="bg-gray-50 rounded-lg p-6 border border-gray-200 mb-8">
+      <div class="flex items-start gap-6">
+        <div class="w-20 h-20 rounded-full bg-rose-400 text-white flex items-center justify-center font-bold text-2xl">
+          {getInitials(contact.name)}
+        </div>
+        
+        <div class="flex-1">
+          <div class="flex items-center gap-3 mb-4">
+            <h3 class="text-2xl font-semibold text-gray-800">{contact.name}</h3>
+          </div>
 
-  {:else if activeTab === 'orangtua'}
-    <OrangTuaForm />
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="flex items-center text-sm text-gray-600">
+              <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+              <span class="font-medium">Contact:</span>
+              <span class="ml-2">{contact.company}</span>
+            </div>
+            
+            <div class="flex items-center text-sm text-gray-600">
+              <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+              </svg>
+              <span class="font-medium">Phone:</span>
+              <span class="ml-2">{contact.phone}</span>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded bg-orange-500 text-white flex items-center justify-center text-sm font-semibold">
+                A
+              </div>
+              <div>
+                <p class="text-xs text-gray-500">Salesperson</p>
+                <p class="text-sm font-medium text-gray-800">{contact.salesperson}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  {:else if activeTab === 'biaya'}
-    <RincianBiayaForm />
+    <!-- List of Events -->
+    <div>
+      <h3 class="text-xl font-semibold text-gray-800 mb-4">List of Event</h3>
+
+      <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Event</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Event Date</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Location</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Notes</th>
+                <th class="px-6 py-4 text-center text-sm font-semibold text-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              {#each contact.events as event}
+                <tr class="hover:bg-gray-50 transition duration-150">
+                  <td class="px-6 py-4">
+                    <div class="flex flex-wrap gap-2">
+                      {#each event.eventTypes as eventType}
+                        <span class="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                          {eventType}
+                        </span>
+                      {/each}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-600">
+                    {formatDate(event.date)}
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-600">
+                    {event.location}
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                      {event.status}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-600">
+                    {event.notes}
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex items-center justify-center gap-2">
+                      <button
+                        on:click={() => openEventDetails(event)}
+                        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition duration-200"
+                      >
+                        Details
+                      </button>
+                      <button
+                        on:click={() => deleteEvent(event.id)}
+                        class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition duration-200"
+                        title="Hapus event"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              {/each}
+
+              {#if isAddingEvent}
+                <tr class="bg-blue-50">
+                  <td class="px-6 py-4">
+                    <div class="event-dropdown-container relative">
+                      <button
+                        type="button"
+                        on:click|stopPropagation={() => showEventDropdown = !showEventDropdown}
+                        class="w-full px-3 py-2 text-left border border-gray-300 rounded-lg bg-white hover:border-rose-300 focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none min-h-[42px]"
+                      >
+                        {#if newEvent.eventTypes.length > 0}
+                          <div class="flex flex-wrap gap-2">
+                            {#each newEvent.eventTypes as eventType}
+                              <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                                {eventType}
+                              </span>
+                            {/each}
+                          </div>
+                        {:else}
+                          <span class="text-gray-400 text-sm">Pilih event...</span>
+                        {/if}
+                      </button>
+
+                      {#if showEventDropdown}
+                        <div class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg">
+                          {#each eventOptions as option}
+                            <button
+                              type="button"
+                              on:click={(e) => toggleEventType(option, e)}
+                              class="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={newEvent.eventTypes.includes(option)}
+                                class="w-4 h-4 text-rose-400 rounded focus:ring-rose-300"
+                                readonly
+                              />
+                              <span class="text-sm">{option}</span>
+                            </button>
+                          {/each}
+                        </div>
+                      {/if}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <input
+                      bind:value={newEvent.date}
+                      type="date"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
+                    />
+                  </td>
+                  <td class="px-6 py-4">
+                    <input
+                      bind:value={newEvent.location}
+                      type="text"
+                      placeholder="Location"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
+                    />
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                      Draft
+                    </span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <input
+                      bind:value={newEvent.notes}
+                      type="text"
+                      placeholder="Notes"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
+                    />
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        on:click={saveNewEvent}
+                        class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition duration-200"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        on:click={cancelAddingEvent}
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-lg transition duration-200"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              {/if}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Add Event Button -->
+      {#if !isAddingEvent}
+        <div class="mt-4">
+          <button
+            on:click={startAddingEvent}
+            class="bg-rose-400 hover:bg-rose-500 text-white font-medium py-3 px-6 rounded-lg transition duration-200 flex items-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Add Event
+          </button>
+        </div>
+      {/if}
+    </div>
   {/if}
 </div>
+
+<style>
+  .event-dropdown-container {
+    position: relative;
+  }
+</style>
