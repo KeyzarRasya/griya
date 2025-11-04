@@ -4,6 +4,7 @@
   import { onMount } from 'svelte';
   import {fittingFormsList, getFittingEvent} from '$lib/data/fittingFormsData'
   import {getEventById} from '$lib/data/events'
+  import { getAllMarketingNames } from '$lib/data/marketingData';
 
   let contactId = $page.params.id;
   let isNewContact = contactId === 'new';
@@ -18,7 +19,12 @@
     { name: '', phone: '', keterangan: '' }
   ];
 
-  console.log(getFittingEvent(fitting.id)?.events)
+  // Get marketing staff from master data
+  const marketingStaffList = getAllMarketingNames();
+
+  // Selected salespersons array
+  let selectedSalespersons = fitting?.marketingName ? [fitting.marketingName] : [];
+  let currentSalespersonSelection = '';
 
   // Event options for multiselect
   const eventOptions = ['Akad', 'Resepsi', 'Siraman'];
@@ -172,10 +178,98 @@
     goto('/fitting');
   }
 
+  // Salesperson multi-select functions
+  function addSalesperson() {
+    if (currentSalespersonSelection && !selectedSalespersons.includes(currentSalespersonSelection)) {
+      selectedSalespersons = [...selectedSalespersons, currentSalespersonSelection];
+      currentSalespersonSelection = '';
+    }
+  }
+
+  function removeSalesperson(salesperson) {
+    selectedSalespersons = selectedSalespersons.filter(s => s !== salesperson);
+  }
+
+  // Watch for dropdown change
+  $: if (currentSalespersonSelection) {
+    addSalesperson();
+  }
+
+  // Contract functionality
+  let showPrintContractModal = false;
+  let selectedContractedContact = null;
+  console.log(selectedContractedContact)
+  let contractForm = {
+    nama: '',
+    nik: '',
+    tanggalLahir: '',
+    alamat: '',
+    nomorHP: ''
+  };
+  let uploadedContracts = [];
+
+  function openPrintContractModal() {
+    showPrintContractModal = true;
+    contractForm = {
+      nama: '',
+      nik: '',
+      tanggalLahir: '',
+      alamat: '',
+      nomorHP: ''
+    };
+  }
+
+  function closePrintContractModal() {
+    showPrintContractModal = false;
+  }
+
+  function handlePrintContract() {
+    if (!contractForm.nama || !contractForm.nik || !contractForm.tanggalLahir || !contractForm.alamat || !contractForm.nomorHP) {
+      alert('Semua field harus diisi');
+      return;
+    }
+    
+    console.log('Print contract with data:', contractForm);
+    alert('Contract data submitted for printing');
+    closePrintContractModal();
+  }
+
+  function handleContractUpload(event) {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        uploadedContracts = [...uploadedContracts, {
+          id: Date.now() + i,
+          name: file.name,
+          size: (file.size / 1024).toFixed(2) + ' KB',
+          uploadDate: new Date().toLocaleDateString('id-ID')
+        }];
+      }
+      alert(`${files.length} contract(s) uploaded successfully`);
+      event.target.value = '';
+    }
+  }
+
+  function removeContract(contractId) {
+    if (confirm('Hapus contract ini?')) {
+      uploadedContracts = uploadedContracts.filter(c => c.id !== contractId);
+    }
+  }
+
   function handleClickOutside(event) {
     const dropdown = document.querySelector('.event-dropdown-container');
     if (dropdown && !dropdown.contains(event.target)) {
       showEventDropdown = false;
+    }
+  }
+
+  function onChangeNameContract(event) {
+    let value = event.target.value;
+    for (let i = 0; i < contacts.length; i++) {
+      if (value == contacts[i].name) {
+        contractForm.nomorHP = contacts[i].phone
+      }
     }
   }
 
@@ -284,12 +378,35 @@
 
           <div>
             <label for="sales" class="block text-sm font-medium text-gray-700 mb-2">Salesperson</label>
-            <select name="salesperson" id="salesperson" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-300">
+            <select 
+              bind:value={currentSalespersonSelection}
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-300"
+            >
               <option value="">Choose Salesperson</option>
-              <option value="jamal">Jamal</option>
-              <option value="abdul">Abdul</option>
-              <option value="saepuding">Saepudin</option>
+              {#each marketingStaffList as staff}
+                <option value={staff}>{staff}</option>
+              {/each}
             </select>
+
+            <!-- Selected Salespersons Display -->
+            {#if selectedSalespersons.length > 0}
+              <div class="mt-3 flex flex-wrap gap-2">
+                {#each selectedSalespersons as salesperson}
+                  <span class="inline-flex items-center gap-2 px-3 py-1 bg-rose-100 text-rose-800 rounded-full text-sm">
+                    {salesperson}
+                    <button
+                      type="button"
+                      on:click={() => removeSalesperson(salesperson)}
+                      class="hover:text-rose-900 focus:outline-none"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                  </span>
+                {/each}
+              </div>
+            {/if}
           </div>
       </div>
 
@@ -307,56 +424,57 @@
             {#each contacts as contact, index}
               <tr>
                 <td class="px-6 py-4">
-                      <input
-                        type="text"
-                        bind:value={contact.name}
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        placeholder="Enter name"
-                      />
-                    </td>
-                    <td class="px-6 py-4">
-                      <input
-                        type="tel"
-                        bind:value={contact.phone}
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        placeholder="Enter phone"
-                      />
-                    </td>
-                    <td class="px-6 py-4">
-                      <input
-                        type="text"
-                        bind:value={contact.keterangan}
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        placeholder="Enter notes"
-                      />
-                    </td>
-                    <td class="px-6 py-4">
-                      <button
-                        on:click={() => removeContactRow(index)}
-                        class="text-red-500 hover:text-red-700"
-                      >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </td>  
+                  <input
+                    bind:value={contact.name}
+                    type="text"
+                    placeholder="Nama"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm"
+                  />
+                </td>
+                <td class="px-6 py-4">
+                  <input
+                    bind:value={contact.phone}
+                    type="text"
+                    placeholder="Phone"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm"
+                  />
+                </td>
+                <td class="px-6 py-4">
+                  <input
+                    bind:value={contact.keterangan}
+                    type="text"
+                    placeholder="Keterangan"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-rose-300 outline-none text-sm"
+                  />
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <button
+                    type="button"
+                    on:click={() => removeContactRow(index)}
+                    class="text-red-600 hover:text-red-800 font-medium text-sm"
+                  >
+                    Remove
+                  </button>
+                </td>
               </tr>
             {/each}
           </tbody>
         </table>
       </div>
 
-      <button
-        on:click={addContactRow}
-        class="mt-4 px-4 py-2 font-bold text-rose-400 rounded-md hover:bg-amber-50 transition-colors"
+      <div class="mt-4">
+        <button
+          type="button"
+          on:click={addContactRow}
+          class="px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white text-sm font-medium rounded transition duration-200"
         >
-        Add Row
-      </button>
-
+          Add Contact Row
+        </button>
+      </div>
     </div>
 
-    <!-- List of Events -->
-    <div>
+    <!-- Events List -->
+    <div class="mb-8">
       <h3 class="text-xl font-semibold text-gray-800 mb-4">List of Event</h3>
 
       <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -373,52 +491,54 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-              {#each getEventById(fitting?.events).events as event}
-                <tr class="hover:bg-gray-50 transition duration-150">
-                  <td class="px-6 py-4">
-                    <div class="flex flex-wrap gap-2">
-                      {#each event.eventTypes as eventType}
-                        <span class="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                          {eventType}
-                        </span>
-                      {/each}
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 text-sm text-gray-600">
-                    {formatDate(event.date)}
-                  </td>
-                  <td class="px-6 py-4 text-sm text-gray-600">
-                    {event.location}
-                  </td>
-                  <td class="px-6 py-4">
-                    <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                      {event.status}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 text-sm text-gray-600">
-                    {event.notes}
-                  </td>
-                  <td class="px-6 py-4">
-                    <div class="flex items-center justify-center gap-2">
-                      <button
-                        on:click={() => openEventDetails(event)}
-                        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition duration-200"
-                      >
-                        Details
-                      </button>
-                      <button
-                        on:click={() => deleteEvent(event.id)}
-                        class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition duration-200"
-                        title="Hapus event"
-                      >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              {/each}
+              {#if fitting?.events}
+                {#each getEventById(fitting?.events).events as event}
+                  <tr class="hover:bg-gray-50 transition duration-150">
+                    <td class="px-6 py-4">
+                      <div class="flex flex-wrap gap-2">
+                        {#each event.eventTypes as eventType}
+                          <span class="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                            {eventType}
+                          </span>
+                        {/each}
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">
+                      {formatDate(event.date)}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">
+                      {event.location}
+                    </td>
+                    <td class="px-6 py-4">
+                      <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                        {event.status}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">
+                      {event.notes}
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex items-center justify-center gap-2">
+                        <button
+                          on:click={() => openEventDetails(event)}
+                          class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition duration-200"
+                        >
+                          Details
+                        </button>
+                        <button
+                          on:click={() => deleteEvent(event.id)}
+                          class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition duration-200"
+                          title="Hapus event"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                {/each}
+              {/if}
 
               {#if isAddingEvent}
                 <tr class="bg-blue-50">
@@ -531,8 +651,180 @@
         </div>
       {/if}
     </div>
+
+    <!-- Contract Documents Section -->
+    <div class="mb-8">
+      <h3 class="text-xl font-semibold text-gray-800 mb-4">Contract Documents</h3>
+      
+      <div class="bg-white border border-gray-200 rounded-lg p-6">
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap gap-4 mb-6">
+          <button
+            on:click={openPrintContractModal}
+            class="flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition duration-200"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+            </svg>
+            Print Contract
+          </button>
+
+          <label class="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition duration-200 cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+            Upload Contract
+            <input
+              type="file"
+              multiple
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              on:change={handleContractUpload}
+              class="hidden"
+            />
+          </label>
+        </div>
+
+        <!-- Uploaded Contracts List -->
+        {#if uploadedContracts.length > 0}
+          <div class="border-t border-gray-200 pt-4">
+            <h4 class="text-sm font-medium text-gray-700 mb-3">Uploaded Contracts</h4>
+            <div class="space-y-2">
+              {#each uploadedContracts as contract}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div class="flex items-center gap-3">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                    <div>
+                      <p class="text-sm font-medium text-gray-800">{contract.name}</p>
+                      <p class="text-xs text-gray-500">{contract.size} - Uploaded on {contract.uploadDate}</p>
+                    </div>
+                  </div>
+                  <button
+                    on:click={() => removeContract(contract.id)}
+                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition duration-200"
+                    title="Remove contract"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
+                </div>
+              {/each}
+            </div>
+          </div>
+        {:else}
+          <div class="text-center py-8 text-gray-500">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <p class="text-sm">No contracts uploaded yet</p>
+          </div>
+        {/if}
+      </div>
+    </div>
   {/if}
 </div>
+
+<!-- Print Contract Modal -->
+{#if showPrintContractModal}
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="p-6 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-2xl font-semibold text-gray-800">Print Contract</h3>
+          <button
+            on:click={closePrintContractModal}
+            class="p-2 hover:bg-gray-100 rounded-lg transition duration-200"
+          >
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <p class="text-gray-600 mb-6">Please fill in the required information to generate the contract document.</p>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Nama <span class="text-red-500">*</span>
+            </label>
+            <select bind:value={contractForm.nama} on:change={onChangeNameContract} name="contactName" id="contact" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent outline-none">
+              {#each contacts as contact}
+                <option value={contact.name}>{contact.name}</option>
+              {/each}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              NIK <span class="text-red-500">*</span>
+            </label>
+            <input
+              bind:value={contractForm.nik}
+              type="text"
+              placeholder="Masukkan NIK"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Tanggal Lahir <span class="text-red-500">*</span>
+            </label>
+            <input
+              bind:value={contractForm.tanggalLahir}
+              type="date"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Alamat <span class="text-red-500">*</span>
+            </label>
+            <textarea
+              bind:value={contractForm.alamat}
+              placeholder="Masukkan alamat lengkap"
+              rows="3"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent outline-none resize-none"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Nomor HP <span class="text-red-500">*</span>
+            </label>
+            <input
+              bind:value={contractForm.nomorHP}
+              type="tel"
+              placeholder="08xxx"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent outline-none"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6 border-t border-gray-200 flex items-center justify-end gap-4">
+        <button
+          on:click={closePrintContractModal}
+          class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition duration-200"
+        >
+          Cancel
+        </button>
+        <button
+          on:click={handlePrintContract}
+          class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition duration-200"
+        >
+          Print
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
 
 <style>
   .event-dropdown-container {
