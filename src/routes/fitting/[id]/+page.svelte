@@ -2,9 +2,23 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
+  import {fittingFormsList, getFittingEvent} from '$lib/data/fittingFormsData'
+  import {getEventById} from '$lib/data/events'
 
   let contactId = $page.params.id;
   let isNewContact = contactId === 'new';
+  let fitting = null
+
+  if (!isNewContact) {
+    fitting = fittingFormsList.find(e => e.id == parseInt(contactId))
+    console.log(fitting)
+  }
+
+  $: contacts = fitting?.contacts || [
+    { name: '', phone: '', keterangan: '' }
+  ];
+
+  console.log(getFittingEvent(fitting.id)?.events)
 
   // Event options for multiselect
   const eventOptions = ['Akad', 'Resepsi', 'Siraman'];
@@ -57,6 +71,14 @@
 
   function goBack() {
     goto('/fitting');
+  }
+
+  function removeContactRow(index) {
+    contacts = contacts.filter((_, i) => i !== index);
+  }
+
+  function addContactRow() {
+    contacts = [...contacts, { name: '', phone: '', keterangan: '' }];
   }
 
   function openEventDetails(event) {
@@ -180,7 +202,7 @@
       </button>
       <div>
         <h2 class="text-3xl font-serif text-gray-800">
-          {isNewContact ? 'Contact Baru' : contact.name}
+          {isNewContact ? 'Contact Baru' : fitting?.namaPengantin}
         </h2>
         <p class="text-gray-600 mt-1">
           {isNewContact ? 'Tambah contact baru' : 'Detail contact dan list of events'}
@@ -203,18 +225,6 @@
             bind:value={newContact.name}
             type="text"
             placeholder="Nama pengantin"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Company
-          </label>
-          <input
-            bind:value={newContact.company}
-            type="text"
-            placeholder="Nama perusahaan"
             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent outline-none"
           />
         </div>
@@ -264,45 +274,85 @@
   {:else}
     <!-- Contact Details -->
     <div class="bg-gray-50 rounded-lg p-6 border border-gray-200 mb-8">
-      <div class="flex items-start gap-6">
-        <div class="w-20 h-20 rounded-full bg-rose-400 text-white flex items-center justify-center font-bold text-2xl">
-          {getInitials(contact.name)}
-        </div>
-        
-        <div class="flex-1">
-          <div class="flex items-center gap-3 mb-4">
-            <h3 class="text-2xl font-semibold text-gray-800">{contact.name}</h3>
+
+      <!-- Opportunity & Salesperson -->
+      <div class="grid grid-cols-2 gap-4 mb-5">
+          <div>
+            <label for="opportunity" class="block text-sm font-medium text-gray-700 mb-2">Opportunity Name</label>
+            <input type="text" placeholder="Enter opportunity name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-300">
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="flex items-center text-sm text-gray-600">
-              <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-              </svg>
-              <span class="font-medium">Contact:</span>
-              <span class="ml-2">{contact.company}</span>
-            </div>
-            
-            <div class="flex items-center text-sm text-gray-600">
-              <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-              </svg>
-              <span class="font-medium">Phone:</span>
-              <span class="ml-2">{contact.phone}</span>
-            </div>
-            
-            <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded bg-orange-500 text-white flex items-center justify-center text-sm font-semibold">
-                A
-              </div>
-              <div>
-                <p class="text-xs text-gray-500">Salesperson</p>
-                <p class="text-sm font-medium text-gray-800">{contact.salesperson}</p>
-              </div>
-            </div>
+          <div>
+            <label for="sales" class="block text-sm font-medium text-gray-700 mb-2">Salesperson</label>
+            <select name="salesperson" id="salesperson" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-300">
+              <option value="">Choose Salesperson</option>
+              <option value="jamal">Jamal</option>
+              <option value="abdul">Abdul</option>
+              <option value="saepuding">Saepudin</option>
+            </select>
           </div>
-        </div>
       </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full border border-gray-300">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Nama</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Phone Number</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Keterangan</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Action</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {#each contacts as contact, index}
+              <tr>
+                <td class="px-6 py-4">
+                      <input
+                        type="text"
+                        bind:value={contact.name}
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        placeholder="Enter name"
+                      />
+                    </td>
+                    <td class="px-6 py-4">
+                      <input
+                        type="tel"
+                        bind:value={contact.phone}
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        placeholder="Enter phone"
+                      />
+                    </td>
+                    <td class="px-6 py-4">
+                      <input
+                        type="text"
+                        bind:value={contact.keterangan}
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        placeholder="Enter notes"
+                      />
+                    </td>
+                    <td class="px-6 py-4">
+                      <button
+                        on:click={() => removeContactRow(index)}
+                        class="text-red-500 hover:text-red-700"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </td>  
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+
+      <button
+        on:click={addContactRow}
+        class="mt-4 px-4 py-2 font-bold text-rose-400 rounded-md hover:bg-amber-50 transition-colors"
+        >
+        Add Row
+      </button>
+
     </div>
 
     <!-- List of Events -->
@@ -323,7 +373,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-              {#each contact.events as event}
+              {#each getEventById(fitting?.events).events as event}
                 <tr class="hover:bg-gray-50 transition duration-150">
                   <td class="px-6 py-4">
                     <div class="flex flex-wrap gap-2">
